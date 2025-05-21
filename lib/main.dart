@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import 'app/theme.dart';
 import 'features/splash/splash_screen.dart';
 import 'features/home/home_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
-import 'features/auth/register_screen.dart';         // صفحة التسجيل
-import 'features/auth/privacy_policy_screen.dart';   // صفحة سياسة الخصوصية
-import 'features/auth/otp_verification_screen.dart'; // صفحة التحقق OTP
+import 'features/auth/register_screen.dart';
+import 'features/auth/privacy_policy_screen.dart';
+import 'features/auth/otp_verification_screen.dart';
 import 'app/app_routes.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(); // 🔥 هذا هو المفتاح لتشغيل Firebase Auth
+
   runApp(const TahniaApp());
 }
 
@@ -29,8 +33,7 @@ class TahniaApp extends StatelessWidget {
         AppRoutes.home: (_) => const HomeScreen(),
         AppRoutes.register: (_) => const RegisterScreen(),
         AppRoutes.privacy: (_) => const PrivacyPolicyScreen(),
-        // ملاحظة: صفحة OTP يتم استدعاؤها عبر MaterialPageRoute لنقل رقم الجوال معها
-        // AppRoutes.otp: (_) => OtpVerificationScreen(phone: ''), // إن أردت تعريفها ضمن routes
+        // AppRoutes.otp: (_) => OtpVerificationScreen(phone: '', verificationId: ''), // يمكن تفعيله لاحقًا
       },
       locale: const Locale('ar'),
       supportedLocales: const [Locale('ar')],
@@ -43,4 +46,3 @@ class TahniaApp extends StatelessWidget {
     );
   }
 }
-

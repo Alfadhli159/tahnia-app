@@ -12,57 +12,92 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  String name = '';
-  String phone = '';
-  String signature = '';
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _signatureController = TextEditingController();
+
   bool agreed = false;
   bool subscribe = false;
-  bool loading = false;
 
-  // دالة لإرسال رمز التحقق عبر Firebase
-  Future<void> sendOTP(BuildContext context) async {
-    String phoneNumber = phone.trim();
-    if (phoneNumber.startsWith('05')) {
-      phoneNumber = '+966' + phoneNumber.substring(1);
-    } else if (!phoneNumber.startsWith('+')) {
+  String? _validatePhone(String? value) {
+    String phone = value?.replaceAll(' ', '') ?? '';
+    if (phone.isEmpty) return 'يرجى إدخال رقم الجوال';
+    return null;
+  }
+
+  void _register() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (!agreed) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('أدخل رقم الجوال بصيغة صحيحة')),
+        const SnackBar(content: Text('يجب الموافقة على سياسة الخصوصية')),
       );
       return;
     }
 
-    setState(() => loading = true);
+    String rawPhone = _phoneController.text.trim();
+
+    // تصحيح الرقم تلقائيًا
+    if (rawPhone.startsWith('05') && rawPhone.length == 10) {
+      rawPhone = '+966${rawPhone.substring(1)}';
+    } else if (rawPhone.startsWith('966') && rawPhone.length == 12) {
+      rawPhone = '+$rawPhone';
+    }
+
+    // التحقق من صحة الصيغة النهائية
+    final isValid = RegExp(r'^\+\d{10,15}$').hasMatch(rawPhone);
+    if (!isValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('❌ صيغة رقم الجوال غير صحيحة. يرجى كتابة الرقم بصيغة مثل: +9665xxxxxxx أو 05xxxxxxx فقط.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    String phone = rawPhone;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
     try {
       await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: phoneNumber,
+        phoneNumber: phone,
         timeout: const Duration(seconds: 60),
-        verificationCompleted: (PhoneAuthCredential credential) {},
+        verificationCompleted: (PhoneAuthCredential credential) {
+          Navigator.of(context).pop();
+        },
         verificationFailed: (FirebaseAuthException e) {
-          setState(() => loading = false);
+          Navigator.of(context).pop();
+          String message = 'فشل الإرسال: ${e.message}';
+          if (e.code == 'too-long') {
+            message = '❌ رقم الجوال طويل جدًا. تحقق من الرقم.';
+          }
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('حدث خطأ: ${e.message}')),
+            SnackBar(content: Text(message)),
           );
         },
         codeSent: (String verificationId, int? resendToken) {
-          setState(() => loading = false);
+          Navigator.of(context).pop();
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => OtpVerificationScreen(
-                phone: phoneNumber,
+              builder: (context) => OtpVerificationScreen(
+                phone: phone,
                 verificationId: verificationId,
               ),
             ),
           );
         },
-        codeAutoRetrievalTimeout: (String verificationId) {
-          setState(() => loading = false);
-        },
+        codeAutoRetrievalTimeout: (String verificationId) {},
       );
     } catch (e) {
-      setState(() => loading = false);
+      Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر إرسال رمز التحقق. تحقق من البيانات وحاول مجددًا')),
+        SnackBar(content: Text('حدث خطأ أثناء الإرسال: $e')),
       );
     }
   }
@@ -81,194 +116,126 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         body: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              children: [
-                const SizedBox(height: 32),
-                // شعار صغير ونص ترحيبي متقابلان في صف واحد
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // شعار صغير (يسار)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 6, right: 6),
-                      child: Image.asset(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
                         'assets/images/logo.png',
-                        width: 40,
-                        height: 40,
+                        width: 38,
+                        height: 38,
+                        errorBuilder: (_, __, ___) => const SizedBox(width: 38, height: 38),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    // نص ترحيبي (يمين)
-                    Expanded(
-                      child: Text(
+                      const SizedBox(width: 10),
+                      const Text(
                         'حياك في تطبيق تهنئة',
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.right,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 34),
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      // الاسم
-                      TextFormField(
-                        decoration: const InputDecoration(
-                          labelText: 'الاسم',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.person),
-                        ),
-                        onSaved: (val) => name = val ?? '',
-                        validator: (val) =>
-                            (val == null || val.trim().length < 3)
-                                ? 'الاسم لا يقل عن 3 أحرف'
-                                : null,
-                      ),
-                      const SizedBox(height: 16),
-                      // الجوال
-                      TextFormField(
-                        keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(
-                          labelText: 'رقم الجوال',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.phone_android),
-                          hintText: '05xxxxxxxx أو +9665xxxxxxxx',
-                        ),
-                        onSaved: (val) => phone = val ?? '',
-                        validator: (val) {
-                          if (val == null || val.isEmpty)
-                            return 'يجب إدخال رقم الجوال';
-                          if (!RegExp(r'^(05\d{8}|\+9665\d{8})$').hasMatch(val.trim()))
-                            return 'رقم غير صحيح';
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      // التوقيع
-                      TextFormField(
-                        decoration: const InputDecoration(
-                          labelText: 'التوقيع (اسم يظهر أسفل رسائلك)',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.edit_note_rounded),
-                          helperText: 'سيظهر هذا الاسم في نهاية كل تهنئة ترسلها',
-                        ),
-                        onSaved: (val) => signature = val ?? '',
-                        validator: (val) => (val == null || val.trim().isEmpty)
-                            ? 'يرجى إدخال التوقيع'
-                            : null,
-                      ),
-                      const SizedBox(height: 24),
-                      // الموافقة على سياسة الخصوصية
-                      Row(
-                        children: [
-                          Checkbox(
-                            value: agreed,
-                            onChanged: (val) {
-                              setState(() => agreed = val ?? false);
-                            },
-                          ),
-                          Flexible(
-                            child: GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const PrivacyPolicyScreen(),
-                                  ),
-                                );
-                              },
-                              child: RichText(
-                                text: const TextSpan(
-                                  text: 'أوافق على ',
-                                  style: TextStyle(
-                                      color: Colors.black, fontSize: 15),
-                                  children: [
-                                    TextSpan(
-                                      text: 'سياسة الخصوصية',
-                                      style: TextStyle(
-                                        decoration: TextDecoration.underline,
-                                        color: Color(0xFF12947f),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      // الموافقة على الاشتراك بالبريد
-                      Row(
-                        children: [
-                          Checkbox(
-                            value: subscribe,
-                            onChanged: (val) {
-                              setState(() => subscribe = val ?? false);
-                            },
-                          ),
-                          const Flexible(
-                            child: Text(
-                              'أوافق على الاشتراك في البريد والتحديثات (اختياري)',
-                              style: TextStyle(fontSize: 15),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      // زر التسجيل
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF12947f),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            disabledBackgroundColor:
-                                const Color(0xFF12947f).withOpacity(0.4),
-                          ),
-                          onPressed: agreed && !loading
-                              ? () async {
-                                  if (_formKey.currentState?.validate() ?? false) {
-                                    _formKey.currentState!.save();
-                                    await sendOTP(context);
-                                  }
-                                }
-                              : null,
-                          child: loading
-                              ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 3,
-                                  ),
-                                )
-                              : const Text(
-                                  'تسجيل',
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white),
-                                ),
+                          color: Color(0xFF12947f),
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 32),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 26),
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'الاسم',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.person),
+                    ),
+                    validator: (value) => value == null || value.isEmpty ? 'يرجى إدخال الاسم' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(
+                      labelText: 'رقم الجوال',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.phone_android),
+                      helperText: '📌 أدخل الرقم بصيغة: 05xxxxxxxx أو +9665xxxxxxxx',
+                    ),
+                    validator: _validatePhone,
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _signatureController,
+                    decoration: const InputDecoration(
+                      labelText: 'التوقيع (الاسم يظهر أسفل رسائلك)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.edit),
+                    ),
+                    validator: (value) => value == null || value.isEmpty ? 'يرجى إدخال التوقيع' : null,
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      'سيظهر هذا الاسم في نهاية كل تهنئة ترسلها.',
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: agreed,
+                        onChanged: (value) => setState(() => agreed = value ?? false),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => PrivacyPolicyScreen()),
+                          );
+                        },
+                        child: Text(
+                          'أوافق على سياسة الخصوصية',
+                          style: TextStyle(
+                            color: Colors.teal[700],
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: subscribe,
+                        onChanged: (value) => setState(() => subscribe = value ?? false),
+                      ),
+                      const Flexible(
+                        child: Text('أوافق على الاشتراك في البريد والتحديثات (اختياري)'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _register,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF12947f),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: const Text('تسجيل', style: TextStyle(fontSize: 18)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
           ),
         ),
