@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String phone;
-  const OtpVerificationScreen({super.key, required this.phone});
+  final String verificationId; // أضف هذا المتغير
+
+  const OtpVerificationScreen({
+    Key? key,
+    required this.phone,
+    required this.verificationId, // أضف هذا السطر
+  }) : super(key: key);
 
   @override
   State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
@@ -51,7 +57,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    // تحقق وهمي فقط للعرض
+                    // هنا مكان التحقق الحقيقي من OTP بالاعتماد على verificationId و otp
+                    // مثال وهمي فقط للعرض، يجب استبداله بمنطق Firebase لاحقًا
                     if (_otpController.text == '123456') {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(

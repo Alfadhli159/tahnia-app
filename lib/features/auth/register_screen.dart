@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'otp_verification_screen.dart';
 import 'privacy_policy_screen.dart';
 
@@ -16,6 +17,55 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String signature = '';
   bool agreed = false;
   bool subscribe = false;
+  bool loading = false;
+
+  // دالة لإرسال رمز التحقق عبر Firebase
+  Future<void> sendOTP(BuildContext context) async {
+    String phoneNumber = phone.trim();
+    if (phoneNumber.startsWith('05')) {
+      phoneNumber = '+966' + phoneNumber.substring(1);
+    } else if (!phoneNumber.startsWith('+')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('أدخل رقم الجوال بصيغة صحيحة')),
+      );
+      return;
+    }
+
+    setState(() => loading = true);
+    try {
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        timeout: const Duration(seconds: 60),
+        verificationCompleted: (PhoneAuthCredential credential) {},
+        verificationFailed: (FirebaseAuthException e) {
+          setState(() => loading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('حدث خطأ: ${e.message}')),
+          );
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          setState(() => loading = false);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => OtpVerificationScreen(
+                phone: phoneNumber,
+                verificationId: verificationId,
+              ),
+            ),
+          );
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          setState(() => loading = false);
+        },
+      );
+    } catch (e) {
+      setState(() => loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('تعذر إرسال رمز التحقق. تحقق من البيانات وحاول مجددًا')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,13 +141,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           labelText: 'رقم الجوال',
                           border: OutlineInputBorder(),
                           prefixIcon: Icon(Icons.phone_android),
-                          hintText: '05xxxxxxxx',
+                          hintText: '05xxxxxxxx أو +9665xxxxxxxx',
                         ),
                         onSaved: (val) => phone = val ?? '',
                         validator: (val) {
                           if (val == null || val.isEmpty)
                             return 'يجب إدخال رقم الجوال';
-                          if (!RegExp(r'^05\d{8}$').hasMatch(val.trim()))
+                          if (!RegExp(r'^(05\d{8}|\+9665\d{8})$').hasMatch(val.trim()))
                             return 'رقم غير صحيح';
                           return null;
                         },
@@ -117,7 +167,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             : null,
                       ),
                       const SizedBox(height: 24),
-
                       // الموافقة على سياسة الخصوصية
                       Row(
                         children: [
@@ -176,7 +225,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ],
                       ),
                       const SizedBox(height: 24),
-
                       // زر التسجيل
                       SizedBox(
                         width: double.infinity,
@@ -190,30 +238,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             disabledBackgroundColor:
                                 const Color(0xFF12947f).withOpacity(0.4),
                           ),
-                          onPressed: agreed
-                              ? () {
-                                  if (_formKey.currentState?.validate() ??
-                                      false) {
+                          onPressed: agreed && !loading
+                              ? () async {
+                                  if (_formKey.currentState?.validate() ?? false) {
                                     _formKey.currentState!.save();
-                                    // انتقل إلى شاشة تحقق OTP
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => OtpVerificationScreen(
-                                          phone: phone,
-                                        ),
-                                      ),
-                                    );
+                                    await sendOTP(context);
                                   }
                                 }
                               : null,
-                          child: const Text(
-                            'تسجيل',
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white),
-                          ),
+                          child: loading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 3,
+                                  ),
+                                )
+                              : const Text(
+                                  'تسجيل',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white),
+                                ),
                         ),
                       ),
                       const SizedBox(height: 32),
