@@ -1,74 +1,113 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
+import 'otp_verification_screen.dart';
+import 'privacy_policy_screen.dart';
 
-class OtpVerificationScreen extends StatefulWidget {
-  final String phone;
-  final String verificationId;
-
-  const OtpVerificationScreen({
-    Key? key,
-    required this.phone,
-    required this.verificationId,
-  }) : super(key: key);
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
-  final _otpController = TextEditingController();
-  bool _loading = false;
+class _RegisterScreenState extends State<RegisterScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _signatureController = TextEditingController();
 
-  void _verifyCode() async {
-    String smsCode = _otpController.text.trim();
+  bool agreed = false;
+  bool subscribe = false;
 
-    if (smsCode.length != 6) {
+  String? _validatePhone(String? value) {
+    String phone = value?.replaceAll(' ', '') ?? '';
+    if (phone.isEmpty) return 'يرجى إدخال رقم الجوال';
+    return null;
+  }
+
+  void _register() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (!agreed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('يجب الموافقة على سياسة الخصوصية')),
+      );
+      return;
+    }
+
+    String rawPhone = _phoneController.text.trim();
+
+    if (rawPhone.startsWith('05') && rawPhone.length == 10) {
+      rawPhone = '+966${rawPhone.substring(1)}';
+    } else if (rawPhone.startsWith('966') && rawPhone.length == 12) {
+      rawPhone = '+$rawPhone';
+    }
+
+    final isValid = RegExp(r'^\+\d{10,15}$').hasMatch(rawPhone);
+    if (!isValid) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('يرجى إدخال رمز مكوّن من 6 أرقام.'),
+          content: Text('❌ صيغة رقم الجوال غير صحيحة. يرجى كتابة الرقم بصيغة مثل: +9665xxxxxxx أو 05xxxxxxx فقط.'),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
 
-    setState(() => _loading = true);
+    String phone = rawPhone;
+
+    // ✅ For now, skip sending SMS and go directly to OTP screen with fake verificationId
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OtpVerificationScreen(
+          phone: phone,
+          verificationId: 'test-verification-id', // fake placeholder
+        ),
+      ),
+    );
+
+    // 🔒 The following block is now disabled
+    /*
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
 
     try {
-      PhoneAuthCredential credential = PhoneAuthProvider.credential(
-        verificationId: widget.verificationId,
-        smsCode: smsCode,
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: phone,
+        timeout: const Duration(seconds: 60),
+        verificationCompleted: (PhoneAuthCredential credential) {
+          Navigator.of(context).pop();
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('فشل الإرسال: ${e.message}')),
+          );
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          Navigator.of(context).pop();
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OtpVerificationScreen(
+                phone: phone,
+                verificationId: verificationId,
+              ),
+            ),
+          );
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {},
       );
-
-      await FirebaseAuth.instance.signInWithCredential(credential);
-
-      setState(() => _loading = false);
+    } catch (e) {
+      Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ تم التحقق من رقم الجوال بنجاح!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-      Navigator.pop(context); // أو انتقل إلى الصفحة التالية
-
-    } on FirebaseAuthException catch (e) {
-      setState(() => _loading = false);
-
-      String errorMessage = 'حدث خطأ أثناء التحقق.';
-      if (e.code == 'invalid-verification-code') {
-        errorMessage = '❌ رمز التحقق غير صحيح. تأكد من الرقم.';
-      } else if (e.code == 'session-expired') {
-        errorMessage = 'انتهت صلاحية الجلسة. أعد إرسال الرمز.';
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('حدث خطأ أثناء الإرسال: $e')),
       );
     }
+    */
   }
 
   @override
@@ -77,55 +116,135 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('التحقق من الجوال'),
+          title: const Text('تسجيل مستخدم جديد'),
           centerTitle: true,
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
           elevation: 0,
         ),
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          child: Column(
-            children: [
-              Text(
-                'تم إرسال رمز تحقق إلى: ${widget.phone}',
-                style: const TextStyle(fontSize: 18),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              TextField(
-                controller: _otpController,
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 24, letterSpacing: 10),
-                decoration: const InputDecoration(
-                  labelText: 'رمز التحقق',
-                  border: OutlineInputBorder(),
-                  counterText: '',
-                ),
-              ),
-              const SizedBox(height: 24),
-              _loading
-                  ? const CircularProgressIndicator()
-                  : SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _verifyCode,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF12947f),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'تحقق',
-                          style: TextStyle(fontSize: 18),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'assets/images/logo.png',
+                        width: 38,
+                        height: 38,
+                        errorBuilder: (_, __, ___) => const SizedBox(width: 38, height: 38),
+                      ),
+                      const SizedBox(width: 10),
+                      const Text(
+                        'حياك في تطبيق تهنئة',
+                        style: TextStyle(
+                          color: Color(0xFF12947f),
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 26),
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'الاسم',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.person),
                     ),
-            ],
+                    validator: (value) => value == null || value.isEmpty ? 'يرجى إدخال الاسم' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(
+                      labelText: 'رقم الجوال',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.phone_android),
+                      helperText: '📌 أدخل الرقم بصيغة: 05xxxxxxxx أو +9665xxxxxxxx',
+                    ),
+                    validator: _validatePhone,
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _signatureController,
+                    decoration: const InputDecoration(
+                      labelText: 'التوقيع (الاسم يظهر أسفل رسائلك)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.edit),
+                    ),
+                    validator: (value) => value == null || value.isEmpty ? 'يرجى إدخال التوقيع' : null,
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      'سيظهر هذا الاسم في نهاية كل تهنئة ترسلها.',
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: agreed,
+                        onChanged: (value) => setState(() => agreed = value ?? false),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => PrivacyPolicyScreen()),
+                          );
+                        },
+                        child: Text(
+                          'أوافق على سياسة الخصوصية',
+                          style: TextStyle(
+                            color: Colors.teal[700],
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: subscribe,
+                        onChanged: (value) => setState(() => subscribe = value ?? false),
+                      ),
+                      const Flexible(
+                        child: Text('أوافق على الاشتراك في البريد والتحديثات (اختياري)'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _register,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF12947f),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: const Text('تسجيل', style: TextStyle(fontSize: 18)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
           ),
         ),
       ),

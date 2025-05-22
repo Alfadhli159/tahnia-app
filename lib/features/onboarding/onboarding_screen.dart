@@ -20,84 +20,89 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFFFBDE),
-      body: Column(
-        children: [
-          Expanded(
-            child: PageView.builder(
-              controller: _controller,
-              itemCount: images.length,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-              itemBuilder: (context, index) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 36.0, horizontal: 8.0),
-                    child: Image.asset(
-                      images[index],
-                      fit: BoxFit.contain,
-                    ),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFFFFBDE),
+        body: Column(
+          children: [
+            Expanded(
+              child: Directionality(
+                textDirection: TextDirection.ltr, // ✅ الحل لعرض الصور بالترتيب الصحيح
+                child: PageView.builder(
+                  controller: _controller,
+                  itemCount: images.length,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentIndex = index;
+                    });
+                  },
+                  itemBuilder: (context, index) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 36.0, horizontal: 8.0),
+                        child: Image.asset(
+                          images[index],
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(images.length, (index) {
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 12.0),
+                  width: _currentIndex == index ? 24 : 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: _currentIndex == index
+                        ? const Color(0xFF12947f)
+                        : Colors.grey[400],
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 );
-              },
+              }),
             ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(images.length, (index) {
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                margin: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 12.0),
-                width: _currentIndex == index ? 24 : 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: _currentIndex == index
-                      ? const Color(0xFF12947f)
-                      : Colors.grey[400],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              );
-            }),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF12947f),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF12947f),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                onPressed: () {
-                  if (_currentIndex == images.length - 1) {
-                    // انتقل لصفحة التسجيل أو الرئيسية
-                    Navigator.pushReplacementNamed(context, '/register');
-                  } else {
-                    _controller.nextPage(
-                      duration: const Duration(milliseconds: 500),
-                      curve: Curves.easeInOut,
-                    );
-                  }
-                },
-                child: Text(
-                  _currentIndex == images.length - 1 ? "ابدأ الآن" : "التالي",
-                  style: const TextStyle(
-                    fontFamily: 'Cairo',
-                    fontSize: 20,
-                    color: Colors.white,
+                  onPressed: () {
+                    if (_currentIndex == images.length - 1) {
+                      Navigator.pushReplacementNamed(context, '/register');
+                    } else {
+                      _controller.nextPage(
+                        duration: const Duration(milliseconds: 500),
+                        curve: Curves.easeInOut,
+                      );
+                    }
+                  },
+                  child: Text(
+                    _currentIndex == images.length - 1 ? "ابدأ الآن" : "التالي",
+                    style: const TextStyle(
+                      fontFamily: 'Cairo',
+                      fontSize: 20,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

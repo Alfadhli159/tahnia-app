@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'otp_verification_screen.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../home/home_screen.dart';
+import 'login_screen.dart';
 import 'privacy_policy_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -13,91 +16,94 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _signatureController = TextEditingController();
 
   bool agreed = false;
   bool subscribe = false;
-
-  String? _validatePhone(String? value) {
-    String phone = value?.replaceAll(' ', '') ?? '';
-    if (phone.isEmpty) return 'يرجى إدخال رقم الجوال';
-    return null;
-  }
+  bool loading = false;
 
   void _register() async {
     if (!_formKey.currentState!.validate()) return;
-    if (!agreed) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يجب الموافقة على سياسة الخصوصية')),
-      );
-      return;
-    }
+    if (!agreed) return;
 
-    String rawPhone = _phoneController.text.trim();
-
-    // تصحيح الرقم تلقائيًا
-    if (rawPhone.startsWith('05') && rawPhone.length == 10) {
-      rawPhone = '+966${rawPhone.substring(1)}';
-    } else if (rawPhone.startsWith('966') && rawPhone.length == 12) {
-      rawPhone = '+$rawPhone';
-    }
-
-    // التحقق من صحة الصيغة النهائية
-    final isValid = RegExp(r'^\+\d{10,15}$').hasMatch(rawPhone);
-    if (!isValid) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('❌ صيغة رقم الجوال غير صحيحة. يرجى كتابة الرقم بصيغة مثل: +9665xxxxxxx أو 05xxxxxxx فقط.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    String phone = rawPhone;
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
-    );
+    setState(() => loading = true);
 
     try {
-      await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: phone,
-        timeout: const Duration(seconds: 60),
-        verificationCompleted: (PhoneAuthCredential credential) {
-          Navigator.of(context).pop();
-        },
-        verificationFailed: (FirebaseAuthException e) {
-          Navigator.of(context).pop();
-          String message = 'فشل الإرسال: ${e.message}';
-          if (e.code == 'too-long') {
-            message = '❌ رقم الجوال طويل جدًا. تحقق من الرقم.';
-          }
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(message)),
-          );
-        },
-        codeSent: (String verificationId, int? resendToken) {
-          Navigator.of(context).pop();
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => OtpVerificationScreen(
-                phone: phone,
-                verificationId: verificationId,
-              ),
-            ),
-          );
-        },
-        codeAutoRetrievalTimeout: (String verificationId) {},
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      await FirebaseAuth.instance.currentUser?.sendEmailVerification();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('✅ تم إرسال رابط التحقق إلى بريدك.'),
+          backgroundColor: Colors.green,
+          action: SnackBarAction(
+            label: 'فتح البريد',
+            textColor: Colors.white,
+            onPressed: () async {
+              final Uri emailApp = Uri.parse('https://mail.google.com/');
+              if (await canLaunchUrl(emailApp)) {
+                await launchUrl(emailApp);
+              }
+            },
+          ),
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      String message = 'حدث خطأ أثناء التسجيل.';
+      if (e.code == 'email-already-in-use') {
+        message = 'هذا البريد مسجّل مسبقًا.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), backgroundColor: Colors.red),
+        );
+        await Future.delayed(const Duration(seconds: 2));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+        return;
+      } else if (e.code == 'invalid-email') {
+        message = 'صيغة البريد غير صحيحة.';
+      } else if (e.code == 'weak-password') {
+        message = 'كلمة المرور ضعيفة. يجب أن تكون 6 خانات على الأقل.';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), backgroundColor: Colors.red),
+      );
+    } finally {
+      setState(() => loading = false);
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    try {
+      final googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return;
+
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      await FirebaseAuth.instance.signInWithCredential(credential);
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
       );
     } catch (e) {
-      Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('حدث خطأ أثناء الإرسال: $e')),
+        const SnackBar(
+          content: Text('فشل تسجيل الدخول باستخدام Google'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -116,126 +122,134 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         body: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: _signInWithGoogle,
+                  icon: const Icon(Icons.login),
+                  label: const Text('التسجيل عبر Google'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black87,
+                    elevation: 2,
+                    side: const BorderSide(color: Colors.grey),
+                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Form(
+                  key: _formKey,
+                  child: Column(
                     children: [
-                      Image.asset(
-                        'assets/images/logo.png',
-                        width: 38,
-                        height: 38,
-                        errorBuilder: (_, __, ___) => const SizedBox(width: 38, height: 38),
-                      ),
-                      const SizedBox(width: 10),
-                      const Text(
-                        'حياك في تطبيق تهنئة',
-                        style: TextStyle(
-                          color: Color(0xFF12947f),
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'الاسم',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.person),
                         ),
+                        validator: (value) =>
+                            value == null || value.isEmpty ? 'يرجى إدخال الاسم' : null,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 26),
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'الاسم',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.person),
-                    ),
-                    validator: (value) => value == null || value.isEmpty ? 'يرجى إدخال الاسم' : null,
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _phoneController,
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(
-                      labelText: 'رقم الجوال',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.phone_android),
-                      helperText: '📌 أدخل الرقم بصيغة: 05xxxxxxxx أو +9665xxxxxxxx',
-                    ),
-                    validator: _validatePhone,
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _signatureController,
-                    decoration: const InputDecoration(
-                      labelText: 'التوقيع (الاسم يظهر أسفل رسائلك)',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.edit),
-                    ),
-                    validator: (value) => value == null || value.isEmpty ? 'يرجى إدخال التوقيع' : null,
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      'سيظهر هذا الاسم في نهاية كل تهنئة ترسلها.',
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: agreed,
-                        onChanged: (value) => setState(() => agreed = value ?? false),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: const InputDecoration(
+                          labelText: 'البريد الإلكتروني',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.email),
+                        ),
+                        validator: (value) =>
+                            value == null || !value.contains('@') ? 'بريد غير صالح' : null,
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => PrivacyPolicyScreen()),
-                          );
-                        },
-                        child: Text(
-                          'أوافق على سياسة الخصوصية',
-                          style: TextStyle(
-                            color: Colors.teal[700],
-                            fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.underline,
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _passwordController,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          labelText: 'كلمة المرور',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.lock),
+                        ),
+                        validator: (value) => value == null || value.length < 6
+                            ? 'أدخل 6 خانات على الأقل'
+                            : null,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _signatureController,
+                        decoration: const InputDecoration(
+                          labelText: 'التوقيع (يظهر أسفل التهنئة)',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.edit),
+                        ),
+                        validator: (value) =>
+                            value == null || value.isEmpty ? 'يرجى إدخال التوقيع' : null,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: agreed,
+                            onChanged: (value) => setState(() => agreed = value ?? false),
                           ),
-                        ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const PrivacyPolicyScreen()),
+                              );
+                            },
+                            child: const Text(
+                              'أوافق على سياسة الخصوصية',
+                              style: TextStyle(
+                                color: Colors.teal,
+                                fontWeight: FontWeight.bold,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: subscribe,
+                            onChanged: (value) => setState(() => subscribe = value ?? false),
+                          ),
+                          const Flexible(
+                            child: Text('أوافق على الاشتراك في البريد والتحديثات (اختياري)'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      loading
+                          ? const CircularProgressIndicator()
+                          : SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: agreed ? _register : null,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF12947f),
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'تسجيل',
+                                  style: TextStyle(fontSize: 18, color: Colors.white),
+                                ),
+                              ),
+                            ),
                     ],
                   ),
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: subscribe,
-                        onChanged: (value) => setState(() => subscribe = value ?? false),
-                      ),
-                      const Flexible(
-                        child: Text('أوافق على الاشتراك في البريد والتحديثات (اختياري)'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _register,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF12947f),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: const Text('تسجيل', style: TextStyle(fontSize: 18)),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
