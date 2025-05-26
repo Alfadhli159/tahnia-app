@@ -1,6 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/services/openai_service.dart';
 
 class SendGreetingScreen extends StatefulWidget {
@@ -11,604 +15,629 @@ class SendGreetingScreen extends StatefulWidget {
 }
 
 class _SendGreetingScreenState extends State<SendGreetingScreen> {
-  // Step tracking
-  int currentStep = 0;
-  
-  // Contact selection
-  List<Contact> allContacts = [];
-  List<Contact> filteredContacts = [];
-  List<Contact> selectedContacts = [];
-  List<Group> allGroups = [];
-  String? selectedGroupId;
-  String searchKeyword = '';
-  
-  // Greeting configuration
-  String selectedType = 'نص'; // نص, بوستر, ملصق
-  String selectedOccasion = 'تهنئة عامة';
-  
-  // Message
+  // Controllers
   final TextEditingController messageController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
   final TextEditingController senderNameController = TextEditingController();
-  bool isLoading = false;
-
-  final List<String> greetingTypes = ['نص', 'بوستر', 'ملصق'];
-  final List<String> occasions = [
-    'تهنئة عامة',
-    'عيد ميلاد',
-    'نجاح',
-    'زواج',
-    'مناسبة دينية',
-    'تخرج',
-    'ترقية',
-    'مولود جديد'
+  final TextEditingController recipientNameController = TextEditingController();
+  
+  // Data
+  Map<String, List<String>> occasionsByCategory = {};
+  List<Contact> contacts = [];
+  List<Contact> filteredContacts = [];
+  List<String> selectedContactIds = [];
+  
+  // State variables
+  String? selectedCategory;
+  String? selectedOccasion;
+  String? selectedMessageType;
+  bool isLoadingContacts = true;
+  bool isGeneratingMessage = false;
+  bool isSearching = false;
+  
+  // Message types
+  final List<Map<String, String>> messageTypes = [
+    {'name': 'نصية', 'emoji': '📝', 'description': 'رسالة نصية تقليدية'},
+    {'name': 'بوستر', 'emoji': '🖼️', 'description': 'رسالة مصممة للعرض'},
+    {'name': 'ملصق', 'emoji': '🏷️', 'description': 'رسالة قصيرة ومختصرة'},
+    {'name': 'شعري', 'emoji': '📜', 'description': 'رسالة شعرية جميلة'},
+    {'name': 'رسمي', 'emoji': '🎩', 'description': 'رسالة رسمية ومهذبة'},
+    {'name': 'ودود', 'emoji': '😊', 'description': 'رسالة ودودة وحميمة'},
   ];
 
   @override
   void initState() {
     super.initState();
-    loadContactsAndGroups();
+    loadOccasions();
+    loadContacts();
   }
 
-  Future<void> loadContactsAndGroups() async {
-    setState(() => isLoading = true);
-    await FlutterContacts.requestPermission();
-    final contacts = await FlutterContacts.getContacts(withProperties: true);
-    final groups = await FlutterContacts.getGroups();
+  Future<void> loadOccasions() async {
+    try {
+      final String data = await rootBundle.loadString('assets/data/occasions_by_category.json');
+      final Map<String, dynamic> jsonMap = json.decode(data);
+      setState(() {
+        occasionsByCategory = jsonMap.map((k, v) => MapEntry(k, List<String>.from(v)));
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('حدث خطأ في تحميل المناسبات')),
+      );
+    }
+  }
+
+  Future<void> loadContacts() async {
+    if (await Permission.contacts.request().isGranted) {
+      setState(() => isLoadingContacts = true);
+      
+      try {
+        final fetched = await FlutterContacts.getContacts(
+          withProperties: true,
+          withPhoto: false,
+        );
+        
+        setState(() {
+          contacts = fetched;
+          filteredContacts = fetched;
+          isLoadingContacts = false;
+        });
+      } catch (e) {
+        setState(() => isLoadingContacts = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('حدث خطأ في تحميل جهات الاتصال')),
+        );
+      }
+    } else {
+      setState(() => isLoadingContacts = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('يجب السماح بالوصول إلى جهات الاتصال')),
+      );
+    }
+  }
+
+  void filterContacts(String query) {
     setState(() {
-      allContacts = contacts;
-      filteredContacts = contacts;
-      allGroups = groups;
-      isLoading = false;
+      isSearching = true;
+      if (query.isEmpty) {
+        filteredContacts = contacts;
+      } else {
+        filteredContacts = contacts.where((contact) {
+          final name = "${contact.name.first} ${contact.name.last}".toLowerCase();
+          return name.contains(query.toLowerCase());
+        }).toList();
+      }
     });
   }
 
-  void filterContacts(String keyword) {
+  void toggleContact(String id) {
     setState(() {
-      searchKeyword = keyword;
-      filteredContacts = allContacts.where((c) =>
-        c.displayName.toLowerCase().contains(keyword.toLowerCase()) ||
-        (c.phones.isNotEmpty && c.phones.first.number.contains(keyword))
-      ).toList();
+      if (selectedContactIds.contains(id)) {
+        selectedContactIds.remove(id);
+      } else {
+        selectedContactIds.add(id);
+      }
     });
   }
 
-  void nextStep() {
-    if (currentStep < 3) {
-      setState(() => currentStep++);
-    }
+  void toggleSelectAll() {
+    setState(() {
+      if (selectedContactIds.length == contacts.length) {
+        selectedContactIds.clear();
+      } else {
+        selectedContactIds = contacts.map((c) => c.id).toList();
+      }
+    });
   }
 
-  void previousStep() {
-    if (currentStep > 0) {
-      setState(() => currentStep--);
+  Future<void> generateMessage() async {
+    if (selectedCategory == null || selectedOccasion == null || selectedMessageType == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('يرجى اختيار نوع المناسبة والمناسبة ونوع الرسالة')),
+      );
+      return;
     }
-  }
 
-  bool canProceedFromStep(int step) {
-    switch (step) {
-      case 0: // Contacts step
-        return selectedContacts.isNotEmpty || selectedGroupId != null;
-      case 1: // Type step
-        return selectedType.isNotEmpty;
-      case 2: // Occasion step
-        return selectedOccasion.isNotEmpty;
-      case 3: // Message step
-        return messageController.text.trim().isNotEmpty;
-      default:
-        return false;
-    }
-  }
+    setState(() => isGeneratingMessage = true);
 
-  Future<void> generateGreetingMessage() async {
-    if (selectedContacts.isEmpty && selectedGroupId == null) return;
-    
-    setState(() => isLoading = true);
-    
-    String recipientName = '';
-    if (selectedContacts.isNotEmpty) {
-      recipientName = selectedContacts.first.displayName.split(' ').first;
-    } else if (selectedGroupId != null) {
-      final group = allGroups.firstWhere((g) => g.id == selectedGroupId);
-      recipientName = group.name;
-    }
-    
-    // Build prompt based on type and occasion
-    String prompt = 'اكتب تهنئة $selectedOccasion ';
-    switch (selectedType) {
+    // جلب الأسماء من الحقول
+    final senderName = senderNameController.text.trim();
+    final recipientName = recipientNameController.text.trim();
+
+    // توليد prompt ديناميكي حسب نوع الرسالة
+    String prompt = '';
+    switch (selectedMessageType) {
+      case 'نصية':
+        prompt =
+            'أنشئ رسالة تهنئة نصية قصيرة بمناسبة $selectedOccasion، بأسلوب لبق وودي، مع دعاء أو عبارة محببة، وراعِ الطابع السعودي إن أمكن. اسم المرسل: $senderName. اسم المستلم: $recipientName.';
+        break;
       case 'بوستر':
-        prompt += 'مناسبة للعرض على بوستر مميز وأنيقة';
+        prompt =
+            'اقترح جملة جذابة توضع في بطاقة تهنئة رسمية بمناسبة $selectedOccasion، بأسلوب أنيق وملهم. اسم المرسل: $senderName. اسم المستلم: $recipientName.';
         break;
       case 'ملصق':
-        prompt += 'قصيرة ومختصرة تصلح كملصق Sticker';
+        prompt =
+            'اكتب جملة مرحة أو مختصرة جدًا بلغة بصرية جذابة تصلح كملصق تهنئة بمناسبة $selectedOccasion. اسم المرسل: $senderName. اسم المستلم: $recipientName.';
+        break;
+      case 'شعري':
+        prompt =
+            'اكتب بيت شعر أو مقطع شعري قصير مناسب للتهنئة بمناسبة $selectedOccasion، بأسلوب جميل. اسم المرسل: $senderName. اسم المستلم: $recipientName.';
+        break;
+      case 'رسمي':
+        prompt =
+            'اكتب رسالة تهنئة رسمية ومهذبة بمناسبة $selectedOccasion، مع توقيع رسمي. اسم المرسل: $senderName. اسم المستلم: $recipientName.';
+        break;
+      case 'ودود':
+        prompt =
+            'اكتب رسالة تهنئة ودودة وحميمة بمناسبة $selectedOccasion، بأسلوب بسيط وصادق. اسم المرسل: $senderName. اسم المستلم: $recipientName.';
         break;
       default:
-        prompt += 'نصية مميزة ومؤثرة';
+        prompt =
+            'أنشئ رسالة تهنئة بمناسبة $selectedOccasion، بأسلوب لبق وودي. اسم المرسل: $senderName. اسم المستلم: $recipientName.';
     }
-    prompt += ' باللغة العربية';
+
+    try {
+      final message = await OpenAIService.generateGreeting(
+        prompt,
+        senderName: senderName,
+        recipientName: recipientName,
+      );
+
+      setState(() {
+        messageController.text = message;
+        isGeneratingMessage = false;
+      });
+    } catch (e) {
+      setState(() => isGeneratingMessage = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('حدث خطأ في توليد الرسالة')),
+      );
+    }
+  }
+
+  Future<void> shareMessage() async {
+    if (messageController.text.trim().isEmpty) return;
+
+    final message = messageController.text;
+    
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.chat, color: Colors.green),
+              title: const Text('واتساب'),
+              onTap: () {
+                Navigator.pop(context);
+                _showContactPickerForWhatsApp(message);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.share),
+              title: const Text('مشاركة عامة'),
+              onTap: () {
+                Navigator.pop(context);
+                Share.share(
+                  message,
+                  subject: 'رسالة تهنئة من تطبيق تهانينا',
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showContactPickerForWhatsApp(String message) {
+    if (filteredContacts.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('لا توجد جهات اتصال متاحة')),
+      );
+      return;
+    }
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => ListView.builder(
+        itemCount: filteredContacts.length,
+        itemBuilder: (context, index) {
+          final contact = filteredContacts[index];
+          final name = "${contact.name.first} ${contact.name.last}".trim();
+          final phone = contact.phones.isNotEmpty ? contact.phones.first.number : '';
+          return ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Colors.teal,
+              child: Text(name.isNotEmpty ? name[0] : '?', style: const TextStyle(color: Colors.white)),
+            ),
+            title: Text(name),
+            subtitle: Text(phone.isNotEmpty ? phone : 'بدون رقم'),
+            onTap: () {
+              Navigator.pop(context);
+              if (phone.isNotEmpty) {
+                _launchWhatsApp(phone, message);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('لا يوجد رقم هاتف لهذا الشخص')),
+                );
+              }
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _launchWhatsApp(String phoneNumber, String message) async {
+    // تنظيف الرقم ليكون دولي (بدون + أو 00)
+    String cleanNumber = phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanNumber.startsWith('00')) {
+      cleanNumber = cleanNumber.substring(2);
+    } else if (cleanNumber.startsWith('0')) {
+      // مثال للسعودية: 05xxxxxxx => 9665xxxxxxx
+      cleanNumber = '966' + cleanNumber.substring(1);
+    }
+    final encodedMessage = Uri.encodeComponent(message);
+    final url = 'https://wa.me/$cleanNumber?text=$encodedMessage';
     
     try {
-      final generatedMessage = await OpenAIService.generateGreeting(prompt);
-      
-      // Format message with recipient name and sender signature
-      String formattedMessage = '';
-      if (selectedContacts.isNotEmpty) {
-        formattedMessage = '$recipientName العزيز/ة،\n\n';
+      if (await canLaunchUrl(Uri.parse(url))) {
+        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
       } else {
-        formattedMessage = 'أعضاء $recipientName الأعزاء،\n\n';
+        throw 'Could not launch WhatsApp';
       }
-      
-      formattedMessage += generatedMessage;
-      
-      // Add sender signature if provided
-      final senderName = senderNameController.text.trim();
-      if (senderName.isNotEmpty) {
-        formattedMessage += '\n\n— $senderName';
-      }
-      
-      messageController.text = formattedMessage;
     } catch (e) {
-      messageController.text = 'حدث خطأ في توليد الرسالة. يرجى المحاولة مرة أخرى.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تعذر فتح واتساب')),
+      );
     }
-    
-    setState(() => isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
+    final bool allSelected = selectedContactIds.length == contacts.length && contacts.isNotEmpty;
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('إرسال تهنئة 🎁'),
-          backgroundColor: Colors.teal,
-          foregroundColor: Colors.white,
+          title: const Text("إرسال تهنئة"),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: loadContacts,
+              tooltip: 'تحديث جهات الاتصال',
+            ),
+          ],
         ),
-        body: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
-                children: [
-                  // Step indicator
-                  _buildStepIndicator(),
-                  // Content
-                  Expanded(
-                    child: _buildStepContent(),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // نوع المناسبة
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "نوع المناسبة",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: selectedCategory,
+                        hint: const Text("اختر نوع المناسبة"),
+                        items: occasionsByCategory.keys.map((e) => DropdownMenuItem(
+                          value: e,
+                          child: Text(e),
+                        )).toList(),
+                        onChanged: (val) => setState(() {
+                          selectedCategory = val;
+                          selectedOccasion = null;
+                        }),
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  // Navigation buttons
-                  _buildNavigationButtons(),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // المناسبة (Dropdown)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "المناسبة",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: selectedOccasion,
+                        hint: const Text("اختر المناسبة"),
+                        items: (selectedCategory != null
+                                ? (occasionsByCategory[selectedCategory!] ?? [])
+                                : [])
+                            .map<DropdownMenuItem<String>>((e) => DropdownMenuItem<String>(
+                                  value: e,
+                                  child: Text(e),
+                                ))
+                            .toList(),
+                        onChanged: (val) => setState(() => selectedOccasion = val),
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // نوع الرسالة
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "نوع الرسالة",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: selectedMessageType,
+                        hint: const Text("اختر نوع الرسالة"),
+                        items: messageTypes.map((type) => DropdownMenuItem(
+                          value: type['name'],
+                          child: Row(
+                            children: [
+                              Text(type['emoji']!),
+                              const SizedBox(width: 8),
+                              Text(type['name']!),
+                            ],
+                          ),
+                        )).toList(),
+                        onChanged: (val) => setState(() => selectedMessageType = val),
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // جهات الاتصال
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "جهات الاتصال",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: searchController,
+                        decoration: InputDecoration(
+                          hintText: 'ابحث عن جهة اتصال...',
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onChanged: filterContacts,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "عدد المحددين: ${selectedContactIds.length}",
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          TextButton.icon(
+                            onPressed: toggleSelectAll,
+                            icon: Icon(allSelected ? Icons.deselect : Icons.select_all),
+                            label: Text(allSelected ? "إلغاء الكل" : "تحديد الكل"),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      if (isLoadingContacts)
+                        Column(
+                          children: const [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 12),
+                            Text(
+                              "قد تتأخر جلب البيانات بسبب كثرة جهات الاتصال .. انتظر",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
+                        )
+                      else if (filteredContacts.isEmpty)
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Text("لا توجد جهات اتصال متاحة"),
+                          ),
+                        )
+                      else
+                        SizedBox(
+                          height: 200,
+                          child: ListView.builder(
+                            itemCount: filteredContacts.length,
+                            itemBuilder: (context, index) {
+                              final contact = filteredContacts[index];
+                              final name = "${contact.name.first} ${contact.name.last}".trim();
+                              return CheckboxListTile(
+                                title: Text(name),
+                                subtitle: contact.phones.isNotEmpty
+                                    ? Text(contact.phones.first.number)
+                                    : null,
+                                value: selectedContactIds.contains(contact.id),
+                                onChanged: (_) => toggleContact(contact.id),
+                                secondary: CircleAvatar(
+                                  backgroundColor: Colors.teal,
+                                  child: Text(
+                                    name.isNotEmpty ? name[0] : '?',
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // حقل اسم المستلم
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: TextField(
+                    controller: recipientNameController,
+                    decoration: InputDecoration(
+                      labelText: 'اسم المستلم',
+                      hintText: 'أدخل اسم الشخص المستلم',
+                      prefixIcon: const Icon(Icons.person_outline),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // حقل اسم المرسل
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: TextField(
+                    controller: senderNameController,
+                    decoration: InputDecoration(
+                      labelText: 'اسم المرسل',
+                      hintText: 'أدخل اسمك',
+                      prefixIcon: const Icon(Icons.person),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // توليد الرسالة
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "الرسالة",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: messageController,
+                        maxLines: 5,
+                        decoration: InputDecoration(
+                          hintText: 'سيتم توليد الرسالة هنا...',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          suffixIcon: isGeneratingMessage
+                              ? const Padding(
+                                  padding: EdgeInsets.all(12),
+                                  child: SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ),
+                                )
+                              : IconButton(
+                                  onPressed: generateMessage,
+                                  icon: const Icon(Icons.refresh),
+                                  tooltip: 'توليد رسالة جديدة',
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // أزرار الإرسال والمشاركة
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: generateMessage,
+                      icon: const Icon(Icons.auto_awesome),
+                      label: const Text('توليد رسالة'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: shareMessage,
+                      icon: const Icon(Icons.share),
+                      label: const Text('مشاركة'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
                 ],
               ),
-      ),
-    );
-  }
-
-  Widget _buildStepIndicator() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          for (int i = 0; i < 4; i++)
-            Expanded(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: i <= currentStep ? Colors.teal : Colors.grey[300],
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    if (i < 3)
-                      Container(
-                        width: 20,
-                        height: 20,
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        decoration: BoxDecoration(
-                          color: i < currentStep ? Colors.teal : Colors.grey[300],
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.check,
-                          size: 12,
-                          color: i < currentStep ? Colors.white : Colors.grey[600],
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStepContent() {
-    switch (currentStep) {
-      case 0:
-        return _buildContactsStep();
-      case 1:
-        return _buildTypeStep();
-      case 2:
-        return _buildOccasionStep();
-      case 3:
-        return _buildMessageStep();
-      default:
-        return Container();
-    }
-  }
-
-  Widget _buildContactsStep() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'الخطوة 1: اختر المستلمين',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ],
           ),
-          const SizedBox(height: 16),
-          TextField(
-            decoration: const InputDecoration(
-              hintText: 'بحث في جهات الاتصال...',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
-            ),
-            onChanged: filterContacts,
-          ),
-          const SizedBox(height: 16),
-          if (allGroups.isNotEmpty) ...[
-            const Text('المجموعات:', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 50,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: allGroups.length,
-                itemBuilder: (context, index) {
-                  final group = allGroups[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: ChoiceChip(
-                      label: Text(group.name),
-                      selected: selectedGroupId == group.id,
-                      onSelected: (selected) {
-                        setState(() {
-                          selectedGroupId = selected ? group.id : null;
-                          selectedContacts.clear();
-                        });
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-          const Text('جهات الاتصال:', style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Expanded(
-            child: ListView.builder(
-              itemCount: filteredContacts.length,
-              itemBuilder: (context, index) {
-                final contact = filteredContacts[index];
-                final isSelected = selectedContacts.contains(contact);
-                return ListTile(
-                  leading: CircleAvatar(
-                    child: Text(
-                      contact.displayName.isNotEmpty ? contact.displayName[0] : '?',
-                    ),
-                  ),
-                  title: Text(contact.displayName),
-                  subtitle: Text(
-                    contact.phones.isNotEmpty ? contact.phones.first.number : 'بدون رقم',
-                  ),
-                  trailing: Checkbox(
-                    value: isSelected,
-                    onChanged: (value) {
-                      setState(() {
-                        if (value == true) {
-                          selectedContacts.add(contact);
-                          selectedGroupId = null;
-                        } else {
-                          selectedContacts.remove(contact);
-                        }
-                      });
-                    },
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTypeStep() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'الخطوة 2: اختر نوع التهنئة',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 24),
-          ...greetingTypes.map((type) {
-            IconData icon;
-            String description;
-            switch (type) {
-              case 'بوستر':
-                icon = Icons.image;
-                description = 'تهنئة مصممة للعرض كبوستر أنيق';
-                break;
-              case 'ملصق':
-                icon = Icons.emoji_emotions;
-                description = 'تهنئة قصيرة ومختصرة كملصق';
-                break;
-              default:
-                icon = Icons.text_fields;
-                description = 'تهنئة نصية تقليدية';
-            }
-            
-            return Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: RadioListTile<String>(
-                value: type,
-                groupValue: selectedType,
-                onChanged: (value) {
-                  setState(() => selectedType = value!);
-                },
-                title: Row(
-                  children: [
-                    Icon(icon, color: Colors.teal),
-                    const SizedBox(width: 12),
-                    Text(type, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                subtitle: Text(description),
-              ),
-            );
-          }).toList(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOccasionStep() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'الخطوة 3: اختر المناسبة',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 24),
-          Expanded(
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 3,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-              ),
-              itemCount: occasions.length,
-              itemBuilder: (context, index) {
-                final occasion = occasions[index];
-                final isSelected = selectedOccasion == occasion;
-                
-                return GestureDetector(
-                  onTap: () {
-                    setState(() => selectedOccasion = occasion);
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isSelected ? Colors.teal : Colors.grey[100],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected ? Colors.teal : Colors.grey[300]!,
-                        width: 2,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        occasion,
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.black87,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMessageStep() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'الخطوة 4: إنشاء وإرسال الرسالة',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'اسم المرسل:',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: senderNameController,
-            decoration: const InputDecoration(
-              hintText: 'أدخل اسمك (اختياري)',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.person),
-            ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: generateGreetingMessage,
-            icon: const Icon(Icons.auto_fix_high),
-            label: const Text('توليد نص التهنئة بالذكاء الاصطناعي'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.teal,
-              foregroundColor: Colors.white,
-              minimumSize: const Size(double.infinity, 50),
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'نص التهنئة:',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: TextField(
-              controller: messageController,
-              maxLines: null,
-              expands: true,
-              textAlignVertical: TextAlignVertical.top,
-              decoration: const InputDecoration(
-                hintText: 'سيظهر نص التهنئة هنا... يمكنك التعديل عليه',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.all(16),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: canProceedFromStep(3) ? _sendGreetingViaWhatsApp : null,
-              icon: const Icon(Icons.send),
-              label: const Text('إرسال التهنئة عبر واتساب'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavigationButtons() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          if (currentStep > 0)
-            Expanded(
-              child: ElevatedButton(
-                onPressed: previousStep,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey[300],
-                  foregroundColor: Colors.black87,
-                ),
-                child: const Text('السابق'),
-              ),
-            ),
-          if (currentStep > 0) const SizedBox(width: 16),
-          if (currentStep < 3)
-            Expanded(
-              child: ElevatedButton(
-                onPressed: canProceedFromStep(currentStep) ? nextStep : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('التالي'),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _sendGreetingViaWhatsApp() async {
-    final message = messageController.text.trim();
-    if (message.isEmpty) return;
-
-    // Send to selected contacts
-    for (final contact in selectedContacts) {
-      if (contact.phones.isNotEmpty) {
-        final phoneNumber = contact.phones.first.number;
-        await _launchWhatsApp(phoneNumber, message);
-      }
-    }
-
-    // Show success message
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('تم إرسال التهنئة إلى ${selectedContacts.length} جهة اتصال'),
-          backgroundColor: Colors.green,
         ),
-      );
-      
-      // Reset the form
-      setState(() {
-        currentStep = 0;
-        selectedContacts.clear();
-        selectedGroupId = null;
-        selectedType = 'نص';
-        selectedOccasion = 'تهنئة عامة';
-        messageController.clear();
-        senderNameController.clear();
-      });
-    }
+      ),
+    );
   }
 
-  Future<void> _launchWhatsApp(String phoneNumber, String message) async {
-    // Accept phone numbers as they are stored in contacts
-    // Remove only spaces, dashes, parentheses, but keep + and digits
-    String cleanNumber = phoneNumber.replaceAll(RegExp(r'[\s\-\(\)]'), '');
-    
-    // If number starts with 00, replace with +
-    if (cleanNumber.startsWith('00')) {
-      cleanNumber = '+${cleanNumber.substring(2)}';
-    }
-    
-    // If number starts with 05 (Saudi local format), add country code
-    if (cleanNumber.startsWith('05')) {
-      cleanNumber = '+966${cleanNumber.substring(1)}';
-    }
-    
-    final uri = Uri.parse('whatsapp://send?phone=$cleanNumber&text=${Uri.encodeComponent(message)}');
-    
-    try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
-      } else {
-        // Fallback to web WhatsApp
-        final webUri = Uri.parse('https://wa.me/$cleanNumber?text=${Uri.encodeComponent(message)}');
-        await launchUrl(webUri, mode: LaunchMode.externalApplication);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('فشل في فتح واتساب')),
-        );
-      }
-    }
+  @override
+  void dispose() {
+    messageController.dispose();
+    searchController.dispose();
+    senderNameController.dispose();
+    recipientNameController.dispose();
+    super.dispose();
   }
 }

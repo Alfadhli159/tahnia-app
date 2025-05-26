@@ -1,22 +1,25 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:http/http.dart' as http;
 
 class OpenAIService {
-  static const _freeApiKey = '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'; // ضع المفتاح الصحيح هنا
+  static const _freeApiKey = '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';
   static const _freeApiUrl = 'https://openrouter.ai/api/v1/chat/completions';
-  static const _openaiApiKey = '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'; // المفتاح الخاص بـ OpenAI إن أردت
+  static const _openaiApiKey = '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';
   static const _openaiUrl = 'https://api.openai.com/v1/chat/completions';
 
   static bool useOpenAI = false;
 
-  static Future<String> generateGreeting(String prompt) async {
+  static Future<String> generateGreeting(
+    String prompt, {
+    String? senderName,
+    String? recipientName,
+  }) async {
     final url = useOpenAI ? _openaiUrl : _freeApiUrl;
     final apiKey = useOpenAI ? _openaiApiKey : _freeApiKey;
 
-    // Always try API first, only fallback if there's an actual error
     try {
       print('🤖 Attempting to generate AI message with prompt: $prompt');
-      
       final response = await http.post(
         Uri.parse(url),
         headers: {
@@ -45,44 +48,101 @@ class OpenAIService {
           return generatedText.toString().trim();
         }
       }
-      
       print('⚠️ API call failed, using fallback message');
-      return _getFallbackGreeting(prompt);
+      return _getFallbackGreeting(prompt, senderName: senderName, recipientName: recipientName);
     } catch (e) {
       print('❌ Error generating AI message: $e');
-      return _getFallbackGreeting(prompt);
+      return _getFallbackGreeting(prompt, senderName: senderName, recipientName: recipientName);
     }
   }
 
-  static String _getFallbackGreeting(String prompt) {
-    // Extract occasion and type from prompt for fallback messages
-    if (prompt.contains('عيد ميلاد')) {
-      return '🎂 كل عام وأنت بخير! أتمنى لك عاماً مليئاً بالسعادة والنجاح والصحة. عيد ميلاد سعيد! 🎉';
-    } else if (prompt.contains('نجاح')) {
-      return '🎓 مبروك النجاح! إنجاز رائع يستحق كل التقدير. أتمنى لك المزيد من التفوق والنجاح في المستقبل! 👏';
-    } else if (prompt.contains('زواج')) {
-      return '💍 ألف مبروك! أتمنى لكما حياة زوجية سعيدة مليئة بالحب والسعادة والبركة. كل عام وأنتما بخير! 💕';
-    } else if (prompt.contains('مناسبة دينية')) {
-      return '🌙 كل عام وأنتم بخير! أعاده الله عليكم وعلى الأمة الإسلامية بالخير والبركة والسعادة. تقبل الله منا ومنكم! ✨';
-    } else if (prompt.contains('تخرج')) {
-      return '🎓 ألف مبروك التخرج! إنجاز عظيم يستحق كل الفخر والاعتزاز. أتمنى لك مستقبلاً مشرقاً مليئاً بالنجاح! 🌟';
-    } else if (prompt.contains('ترقية')) {
-      return '📈 مبروك الترقية! إنجاز يستحق كل التقدير والاحترام. أتمنى لك المزيد من التقدم والنجاح في مسيرتك المهنية! 💼';
-    } else if (prompt.contains('مولود جديد')) {
-      return '👶 ألف مبروك المولود الجديد! أتمنى أن يكون قرة عين لكم وأن يحفظه الله ويبارك فيه. كل عام وأنتم بخير! 🍼';
-    } else {
-      return '🎉 ألف مبروك! أتمنى لك كل السعادة والتوفيق. دمت بخير وسعادة دائمة! ✨';
-    }
-  }
+  static String _getFallbackGreeting(
+    String prompt, {
+    String? senderName,
+    String? recipientName,
+  }) {
+    // تحليل نوع الرسالة
+    String type = '';
+    if (prompt.contains('نصية')) type = 'نصية';
+    else if (prompt.contains('بوستر')) type = 'بوستر';
+    else if (prompt.contains('ملصق')) type = 'ملصق';
+    else if (prompt.contains('شعري')) type = 'شعري';
+    else if (prompt.contains('رسمي')) type = 'رسمي';
+    else if (prompt.contains('ودود')) type = 'ودود';
 
-  static String _buildPrompt(String type) {
-    switch (type) {
-      case 'بوستر':
-        return 'اكتب لي تهنئة أنيقة مناسبة للعرض على بوستر مميز.';
-      case 'ملصق':
-        return 'أنشئ تهنئة قصيرة تصلح كملصق Sticker.';
-      default:
-        return 'اكتب لي تهنئة نصية مميزة بمناسبة سعيدة.';
+    // تحليل نوع المناسبة
+    String occasion = '';
+    final occasions = [
+      'عيد ميلاد', 'نجاح', 'زواج', 'مناسبة دينية', 'تخرج', 'ترقية', 'مولود', 'عيد الفطر', 'عيد الأضحى', 'اليوم الوطني', 'عيد الأم'
+    ];
+    for (final o in occasions) {
+      if (prompt.contains(o)) {
+        occasion = o;
+        break;
+      }
     }
+
+    // اسم المرسل والمستلم
+    String sender = senderName ?? '';
+    String recipient = recipientName ?? '';
+
+    // عبارات جاهزة حسب النوع
+    final greetings = <String, List<String>>{
+      'نصية': [
+        'أبارك لك من القلب بمناسبة {occasion}، وأسأل الله أن يديم عليك الفرح والسعادة.',
+        'كل عام وأنت بخير يا {recipient}! {occasion} سعيد عليك وعلى أحبابك.',
+        'تهنئة خاصة لك بمناسبة {occasion}، أتمنى لك أيامًا مليئة بالنجاح.',
+        'أسأل الله أن يجعل {occasion} بداية خير وسعادة لك يا {recipient}.'
+      ],
+      'بوستر': [
+        'مبارك عليكم {occasion}، جعل الله أيامكم كلها أفراح.',
+        '{occasion} سعيد! أدام الله عليكم المسرات.',
+        'كل عام وأنتم بخير بمناسبة {occasion}، دمتم بخير.',
+        'أجمل التهاني وأطيب الأماني بمناسبة {occasion}.'
+      ],
+      'ملصق': [
+        'يا زين {occasion} معاكم!',
+        'فرحة {occasion} غير مع الأحباب!',
+        '{occasion} = سعادة!',
+        'أحلى {occasion}!'
+      ],
+      'شعري': [
+        'في {occasion} أزف لك أصدق الأماني\nوأدعو لك بالسعادة طول الزمانِ',
+        'يا {recipient} في {occasion} أقول\nعسى الفرح دومًا يملأ لك الدروب',
+        'بمناسبة {occasion} أبعث لك بيت شعر\nيفرح قلبك ويزيدك سرور'
+      ],
+      'رسمي': [
+        'يسرني أن أتقدم إليكم بأسمى آيات التهاني والتبريكات بمناسبة {occasion}. مع أطيب التحيات.',
+        'أتشرف بتقديم التهنئة لكم بمناسبة {occasion}، متمنيًا لكم دوام التوفيق.',
+        'بمناسبة {occasion}، أبعث لكم أصدق التهاني وأطيب الأمنيات.'
+      ],
+      'ودود': [
+        'من القلب إلى القلب، {occasion} سعيد يا {recipient}!',
+        'أرسل لك أطيب التهاني بمناسبة {occasion}، وأتمنى لك كل الفرح.',
+        'يا رب أيامك كلها أفراح مثل {occasion} اليوم!'
+      ]
+    };
+
+    // اختيار عشوائي لعبارة مناسبة
+    final rand = Random();
+    String greeting = (greetings[type]?.isNotEmpty ?? false)
+        ? greetings[type]![rand.nextInt(greetings[type]!.length)]
+        : 'ألف مبروك {occasion}! أتمنى لك كل السعادة والتوفيق.';
+
+    // استبدال المتغيرات
+    greeting = greeting.replaceAll('{occasion}', occasion.isNotEmpty ? occasion : 'المناسبة');
+    greeting = greeting.replaceAll('{recipient}', recipient.isNotEmpty ? recipient : 'صديقي');
+
+    // إضافة توقيع باسم المرسل إن وجد
+    if (sender.isNotEmpty) {
+      greeting += '\n\n— $sender';
+    }
+
+    // إضافة طابع سعودي إذا كانت المناسبة اجتماعية أو دينية
+    if (occasion.contains('عيد') || occasion.contains('اليوم الوطني') || occasion.contains('مناسبة دينية')) {
+      greeting += '\n🇸🇦';
+    }
+
+    return greeting;
   }
 }

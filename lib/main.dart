@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 // استيراد الصفحات
-import 'features/home/home_screen.dart';
+import 'package:tahania_app/app/main_navigation_screen.dart';
 import 'features/greetings/screens/send_greeting_screen.dart';
 import 'features/greetings/screens/surprise_message_screen.dart';
 import 'features/greetings/screens/schedule_greeting_screen.dart';
@@ -33,7 +33,7 @@ class TahniaApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (_) => const HomeScreen(),
+        '/': (_) => const MainNavigationScreen(),
         '/sendGreeting': (_) => const SendGreetingScreen(),
         '/surpriseMessage': (_) => const SurpriseMessageScreen(),
         '/scheduleGreeting': (_) => const ScheduleGreetingScreen(),
