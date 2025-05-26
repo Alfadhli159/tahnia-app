@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../app/app_routes.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -13,8 +14,13 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Future.delayed(const Duration(seconds: 3), () {
-      Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
-    });// لتعديل مدة الانتظار حسب الحاجةلشاشة العرض رقم 1 الترحيبية
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+      } else {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
+      }
+    });
   }
 
   @override
@@ -44,12 +50,13 @@ class _SplashScreenState extends State<SplashScreen> {
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF18816A), // أخضر غامق واضح
+                  color: const Color(0xFF18816A),
                   shadows: [
                     Shadow(
-                        blurRadius: 1.5,
-                        color: Colors.black12,
-                        offset: Offset(1, 1))
+                      blurRadius: 1.5,
+                      color: Colors.black12,
+                      offset: Offset(1, 1),
+                    )
                   ],
                 ),
               ),

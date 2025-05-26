@@ -1,5 +1,3 @@
-// lib/features/home/home_screen.dart
-
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -22,51 +20,39 @@ class HomeScreen extends StatelessWidget {
             children: [
               _buildServiceBox(
                 context,
+                icon: Icons.calendar_today,
+                label: "جدولة تهنئة",
+                onTap: () {},
+              ),
+              _buildServiceBox(
+                context,
                 icon: Icons.card_giftcard,
                 label: "أرسل تهنئة",
-                onTap: () {
-                  Navigator.pushNamed(context, '/sendGreeting');
-                },
-              ),
-              _buildServiceBox(
-                context,
-                icon: Icons.auto_awesome,
-                label: "فاجئني برسالة",
-                onTap: () {
-                  Navigator.pushNamed(context, '/surpriseMessage');
-                },
-              ),
-              _buildServiceBox(
-                context,
-                icon: Icons.schedule_send,
-                label: "جدولة تهنئة",
-                onTap: () {
-                  Navigator.pushNamed(context, '/scheduleGreeting');
-                },
-              ),
-              _buildServiceBox(
-                context,
-                icon: Icons.history,
-                label: "سجل التهاني",
-                onTap: () {
-                  Navigator.pushNamed(context, '/greetingHistory');
-                },
+                onTap: () {},
               ),
               _buildServiceBox(
                 context,
                 icon: Icons.group,
                 label: "المجموعات",
-                onTap: () {
-                  Navigator.pushNamed(context, '/groups');
-                },
+                onTap: () {},
+              ),
+              _buildServiceBox(
+                context,
+                icon: Icons.auto_awesome,
+                label: "فاجئني برسالة",
+                onTap: () {},
+              ),
+              _buildServiceBox(
+                context,
+                icon: Icons.history,
+                label: "سجل التهاني",
+                onTap: () {},
               ),
               _buildServiceBox(
                 context,
                 icon: Icons.menu_book,
                 label: "قوالب التهاني",
-                onTap: () {
-                  Navigator.pushNamed(context, '/greetingTemplates');
-                },
+                onTap: () {},
               ),
             ],
           ),
@@ -75,12 +61,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildServiceBox(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildServiceBox(BuildContext context,
+      {required IconData icon, required String label, required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -98,7 +80,6 @@ class HomeScreen extends StatelessWidget {
             Text(
               label,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
             ),
           ],
         ),

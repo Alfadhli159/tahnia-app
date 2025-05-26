@@ -17,9 +17,16 @@ dependencies:
   firebase_auth: ^4.17.0
   google_sign_in: ^6.1.4
   url_launcher: ^6.3.1
+  fl_chart: ^0.63.0
+  http: 1.1.0
 
-
- 
+  # 🆕 تبعيات لإدارة جهات الاتصال والتخزين المحلي
+  flutter_contacts: ^1.1.7+1
+  permission_handler: ^11.0.1
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  path_provider: ^2.0.11
+  share_plus: ^7.2.2
 
 dev_dependencies:
   flutter_test:
@@ -31,15 +38,13 @@ flutter:
 
   assets:
     - assets/images/logo.png
-
     - assets/images/onboarding/tahnia1.png
     - assets/images/onboarding/tahnia2.png
     - assets/images/onboarding/tahnia3.png
     - assets/images/onboarding/tahnia4.png
 
   fonts:
-  - family: Cairo
-    fonts:
-      - asset: assets/fonts/Cairo-Regular.ttf
-      - asset: assets/fonts/Cairo-Bold.ttf
-
+    - family: Cairo
+      fonts:
+        - asset: assets/fonts/Cairo-Regular.ttf
+        - asset: assets/fonts/Cairo-Bold.ttf

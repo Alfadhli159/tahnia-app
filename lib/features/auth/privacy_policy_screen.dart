@@ -9,22 +9,20 @@ class PrivacyPolicyScreen extends StatelessWidget {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('سياسة الخصوصية'),
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
+          title: const Text('شروط الاستخدام'),
+          backgroundColor: Colors.teal,
         ),
         body: const Padding(
-          padding: EdgeInsets.all(24),
+          padding: EdgeInsets.all(20),
           child: SingleChildScrollView(
             child: Text(
-              '''
-نص سياسة الخصوصية:
-- نحن نحترم خصوصيتك ونلتزم بحماية بياناتك.
-- جميع البيانات المقدمة لن يتم مشاركتها مع أي طرف ثالث.
-- يتم استخدام رقم الجوال فقط لأغراض التحقق والتواصل والتسويق للخدمات والتحديثات المستقبلية.
-- باستخدامك التطبيق، فإنك توافق على سياسة الخصوصية هذه.
-              ''',
-              style: TextStyle(fontSize: 16),
+              'باستخدامك لتطبيق "تهنئة" فإنك توافق على الشروط التالية:\n\n'
+              '- يُستخدم التطبيق فقط لأغراض شخصية ومشروعة.\n'
+              '- لا يجوز إساءة استخدام خدمة التهاني أو إرسال محتوى غير لائق.\n'
+              '- قد يتم تحديث هذه الشروط دون إشعار مسبق، وعلى المستخدم مراجعتها دوريًا.\n'
+              '- نحن نحترم خصوصيتك ولن نشارك بياناتك مع طرف ثالث دون إذنك.\n\n'
+              'نشكر لك ثقتك ونلتزم بتوفير تجربة تهنئة آمنة وممتعة.',
+              style: TextStyle(fontSize: 16, height: 1.7),
             ),
           ),
         ),
