@@ -2,13 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
-import '../../../core/services/openai_service.dart';
-import '../../../core/services/poster_generator.dart';
+import '../../../core/services/ai_service.dart';
 import 'dart:math';
-import 'dart:typed_data';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 
 class SurpriseMessageScreen extends StatefulWidget {
   const SurpriseMessageScreen({super.key});
@@ -33,29 +28,26 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
   late AnimationController _surpriseController;
   late Animation<double> _surpriseAnimation;
 
-  // Enhanced occasions with emojis and descriptions
   final List<Map<String, String>> occasions = [
-    {'name': 'تهنئة عامة', 'emoji': '🎉', 'description': 'تهنئة عامة لأي مناسبة سعيدة'},
-    {'name': 'عيد ميلاد', 'emoji': '🎂', 'description': 'تهنئة بعيد الميلاد'},
-    {'name': 'نجاح', 'emoji': '🎓', 'description': 'تهنئة بالنجاح والتفوق'},
-    {'name': 'زواج', 'emoji': '💍', 'description': 'تهنئة بالزواج'},
-    {'name': 'مناسبة دينية', 'emoji': '🌙', 'description': 'تهنئة بالمناسبات الدينية'},
-    {'name': 'تخرج', 'emoji': '🎓', 'description': 'تهنئة بالتخرج'},
-    {'name': 'ترقية', 'emoji': '📈', 'description': 'تهنئة بالترقية'},
-    {'name': 'مولود جديد', 'emoji': '👶', 'description': 'تهنئة بالمولود الجديد'},
-    {'name': 'خطوبة', 'emoji': '💕', 'description': 'تهنئة بالخطوبة'},
-    {'name': 'عيد الفطر', 'emoji': '🌙', 'description': 'تهنئة بعيد الفطر المبارك'},
-    {'name': 'عيد الأضحى', 'emoji': '🕌', 'description': 'تهنئة بعيد الأضحى المبارك'},
-    {'name': 'رمضان', 'emoji': '🌙', 'description': 'تهنئة بشهر رمضان المبارك'},
+    {'name': 'تهنئة عامة', 'emoji': '🎉'},
+    {'name': 'عيد ميلاد', 'emoji': '🎂'},
+    {'name': 'نجاح', 'emoji': '🎓'},
+    {'name': 'زواج', 'emoji': '💍'},
+    {'name': 'تخرج', 'emoji': '🎓'},
+    {'name': 'ترقية', 'emoji': '📈'},
+    {'name': 'مولود جديد', 'emoji': '👶'},
+    {'name': 'خطوبة', 'emoji': '💕'},
+    {'name': 'عيد الفطر', 'emoji': '🌙'},
+    {'name': 'عيد الأضحى', 'emoji': '🕌'},
   ];
 
   final List<Map<String, String>> messageTypes = [
-    {'name': 'نص', 'emoji': '📝', 'description': 'رسالة نصية تقليدية'},
-    {'name': 'بوستر', 'emoji': '🖼️', 'description': 'رسالة مصممة للعرض'},
-    {'name': 'ملصق', 'emoji': '🏷️', 'description': 'رسالة قصيرة ومختصرة'},
-    {'name': 'شعري', 'emoji': '📜', 'description': 'رسالة شعرية جميلة'},
-    {'name': 'رسمي', 'emoji': '🎩', 'description': 'رسالة رسمية ومهذبة'},
-    {'name': 'ودود', 'emoji': '😊', 'description': 'رسالة ودودة وحميمة'},
+    {'name': 'نص', 'emoji': '📝'},
+    {'name': 'بوستر', 'emoji': '🖼️'},
+    {'name': 'ملصق', 'emoji': '🏷️'},
+    {'name': 'شعري', 'emoji': '📜'},
+    {'name': 'رسمي', 'emoji': '🎩'},
+    {'name': 'ودود', 'emoji': '😊'},
   ];
 
   @override
@@ -96,7 +88,6 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
       isMessageGenerated = false;
     });
 
-    // Random selection for surprise
     final random = Random();
     final selectedOccasion = occasions[random.nextInt(occasions.length)];
     final selectedType = messageTypes[random.nextInt(messageTypes.length)];
@@ -104,7 +95,6 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
     currentOccasion = selectedOccasion['name']!;
     currentType = selectedType['name']!;
 
-    // Build enhanced prompt
     String prompt = 'اكتب تهنئة ${selectedOccasion['name']} ';
     switch (selectedType['name']) {
       case 'بوستر':
@@ -128,24 +118,13 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
     prompt += ' باللغة العربية بأسلوب إبداعي';
 
     try {
-      final generatedMessage = await OpenAIService.generateGreeting(prompt);
+      final greeting = await AIService.generateGreeting(
+        prompt,
+        senderName: senderNameController.text.trim(),
+        recipientName: recipientNameController.text.trim(),
+      );
       
-      // Format message with recipient and sender
-      String formattedMessage = '';
-      final recipientName = recipientNameController.text.trim();
-      final senderName = senderNameController.text.trim();
-      
-      if (recipientName.isNotEmpty) {
-        formattedMessage = '$recipientName العزيز/ة،\n\n';
-      }
-      
-      formattedMessage += generatedMessage;
-      
-      if (senderName.isNotEmpty) {
-        formattedMessage += '\n\n— $senderName';
-      }
-      
-      messageController.text = formattedMessage;
+      messageController.text = greeting.content;
       
       setState(() {
         isGenerating = false;
@@ -153,10 +132,19 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
       });
       
       _surpriseController.forward();
-      
-      // Show success feedback
       HapticFeedback.lightImpact();
       
+    } on AIServiceException catch (e) {
+      setState(() {
+        isGenerating = false;
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: Colors.red,
+        ),
+      );
     } catch (e) {
       setState(() {
         isGenerating = false;
@@ -164,7 +152,7 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
       
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('حدث خطأ في توليد الرسالة. يرجى المحاولة مرة أخرى.'),
+          content: Text('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -196,117 +184,32 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
   }
 
   Future<void> sendViaWhatsApp() async {
-    if (messageController.text.trim().isEmpty) return;
-    
-    // Show contact picker
-    final contacts = await _getContacts();
-    if (contacts.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('لا توجد جهات اتصال متاحة')),
-      );
-      return;
-    }
-    
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => _buildContactPicker(contacts),
-    );
-  }
-
-  Future<List<Contact>> _getContacts() async {
-    await FlutterContacts.requestPermission();
-    return await FlutterContacts.getContacts(withProperties: true);
-  }
-
-  Widget _buildContactPicker(List<Contact> contacts) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.7,
-      maxChildSize: 0.9,
-      minChildSize: 0.5,
-      expand: false,
-      builder: (context, scrollController) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
+    if (messageController.text.trim().isNotEmpty) {
+      final message = Uri.encodeComponent(messageController.text);
+      final whatsappUrl = 'https://wa.me/?text=$message';
+      
+      try {
+        if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
+          await launchUrl(Uri.parse(whatsappUrl), mode: LaunchMode.externalApplication);
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('لا يمكن فتح واتساب. تأكد من تثبيت التطبيق.'),
+                backgroundColor: Colors.red,
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'اختر جهة الاتصال',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: ListView.builder(
-                  controller: scrollController,
-                  itemCount: contacts.length,
-                  itemBuilder: (context, index) {
-                    final contact = contacts[index];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.teal,
-                        child: Text(
-                          contact.displayName.isNotEmpty ? contact.displayName[0] : '?',
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      title: Text(contact.displayName),
-                      subtitle: Text(
-                        contact.phones.isNotEmpty ? contact.phones.first.number : 'بدون رقم',
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        if (contact.phones.isNotEmpty) {
-                          _launchWhatsApp(contact.phones.first.number, messageController.text);
-                        }
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _launchWhatsApp(String phoneNumber, String message) async {
-    String cleanNumber = phoneNumber.replaceAll(RegExp(r'[\s\-\(\)]'), '');
-    
-    if (cleanNumber.startsWith('00')) {
-      cleanNumber = '+${cleanNumber.substring(2)}';
-    }
-    
-    if (cleanNumber.startsWith('05')) {
-      cleanNumber = '+966${cleanNumber.substring(1)}';
-    }
-    
-    final uri = Uri.parse('whatsapp://send?phone=$cleanNumber&text=${Uri.encodeComponent(message)}');
-    
-    try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
-      } else {
-        final webUri = Uri.parse('https://wa.me/$cleanNumber?text=${Uri.encodeComponent(message)}');
-        await launchUrl(webUri, mode: LaunchMode.externalApplication);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('فشل في فتح واتساب')),
-        );
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('حدث خطأ أثناء فتح واتساب.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
@@ -552,7 +455,11 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                                     border: InputBorder.none,
                                     hintText: 'الرسالة ستظهر هنا...',
                                   ),
-                                  style: const TextStyle(fontSize: 16, height: 1.5),
+                                  style: const TextStyle(
+                                    fontSize: 16, 
+                                    height: 1.5,
+                                  ),
+                                  textDirection: TextDirection.rtl,
                                 ),
                               ),
                             ],
@@ -590,6 +497,7 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                                         backgroundColor: Colors.blue,
                                         foregroundColor: Colors.white,
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
                                       ),
                                     ),
                                   ),
@@ -603,6 +511,7 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                                         backgroundColor: Colors.orange,
                                         foregroundColor: Colors.white,
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
                                       ),
                                     ),
                                   ),
@@ -613,13 +522,14 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
                                   onPressed: sendViaWhatsApp,
-                                  icon: const Icon(Icons.send),
-                                  label: const Text('إرسال عبر واتساب'),
+                                  icon: const Icon(Icons.message, color: Colors.white),
+                                  label: const Text('أرسل عبر واتساب', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
+                                    backgroundColor: const Color(0xFF25D366),
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    elevation: 4,
                                   ),
                                 ),
                               ),
@@ -642,7 +552,7 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                             generateSurpriseMessage();
                           },
                           icon: const Icon(Icons.refresh),
-                          label: const Text('فاجئني برسالة أخرى!'),
+                          label: const Text('🎲 جرب مرة أخرى!'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.purple,
                             side: const BorderSide(color: Colors.purple, width: 2),
@@ -680,7 +590,7 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                             '• أدخل اسم المستلم للحصول على رسالة شخصية\n'
                             '• أضف اسمك كمرسل لتوقيع الرسالة\n'
                             '• يمكنك تعديل الرسالة بعد توليدها\n'
-                            '• جرب الضغط على "فاجئني برسالة أخرى" للحصول على أنواع مختلفة',
+                            '• جرب الضغط على "جرب مرة أخرى" للحصول على أنواع مختلفة',
                             style: TextStyle(fontSize: 14, height: 1.5),
                           ),
                         ],

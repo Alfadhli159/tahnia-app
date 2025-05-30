@@ -1,0 +1,120 @@
+{
+  "app": {
+    "name": "Tahania",
+    "description": "An app for sending greetings and congratulations"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "retry": "Retry"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "confirm_password": "Confirm Password",
+    "forgot_password": "Forgot Password?",
+    "reset_password": "Reset Password"
+  },
+  "greetings": {
+    "send_greeting": "Send Greeting",
+    "message_type": "Message Type",
+    "select_message_type": "Select Message Type",
+    "occasion_type": "Occasion Type",
+    "select_occasion_type": "Select Occasion Type",
+    "occasion": "Occasion",
+    "select_occasion": "Select Occasion",
+    "sender_name": "Sender Name",
+    "recipient_name": "Recipient Name",
+    "message": "Message",
+    "message_hint": "Message will be generated here...",
+    "generate": "Generate Message",
+    "generating": "Generating...",
+    "contacts": "Contacts",
+    "search_contacts": "Search contacts...",
+    "selected_count": "Selected: {count}",
+    "select_all": "Select All",
+    "deselect_all": "Deselect All",
+    "no_contacts": "No contacts available",
+    "share": {
+      "whatsapp": "WhatsApp",
+      "general": "Share",
+      "subject": "Greeting from Tahania App"
+    },
+    "error": {
+      "load_occasions": "Error loading occasions",
+      "load_contacts": "Error loading contacts",
+      "contacts_permission": "Contacts permission required",
+      "select_required": "Please select occasion type, occasion, and message type",
+      "generate_message": "Error generating message",
+      "no_contacts": "No contacts available",
+      "whatsapp_not_installed": "WhatsApp is not installed",
+      "no_phone": "No phone number available"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "theme_light": "Light",
+    "theme_dark": "Dark",
+    "theme_system": "System",
+    "notifications": "Notifications",
+    "privacy": "Privacy",
+    "about": "About",
+    "version": "Version",
+    "feedback": "Send Feedback",
+    "rate": "Rate App"
+  },
+  "contacts": {
+    "title": "Contacts",
+    "groups": "Groups",
+    "add_group": "Add Group",
+    "edit_group": "Edit Group",
+    "delete_group": "Delete Group",
+    "group_name": "Group Name",
+    "add_contact": "Add Contact",
+    "edit_contact": "Edit Contact",
+    "delete_contact": "Delete Contact",
+    "contact_name": "Contact Name",
+    "phone": "Phone",
+    "email": "Email",
+    "notes": "Notes"
+  },
+  "history": {
+    "title": "History",
+    "sent": "Sent",
+    "scheduled": "Scheduled",
+    "drafts": "Drafts",
+    "delete": "Delete from History",
+    "resend": "Resend",
+    "edit": "Edit",
+    "schedule": "Schedule",
+    "date": "Date",
+    "time": "Time",
+    "status": "Status",
+    "status_sent": "Sent",
+    "status_scheduled": "Scheduled",
+    "status_draft": "Draft",
+    "status_failed": "Failed"
+  },
+  "templates": {
+    "title": "Templates",
+    "add": "Add Template",
+    "edit": "Edit Template",
+    "delete": "Delete Template",
+    "name": "Template Name",
+    "content": "Template Content",
+    "category": "Category",
+    "favorite": "Favorite",
+    "share": "Share Template"
+  }
+} 

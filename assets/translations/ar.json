@@ -1,0 +1,122 @@
+{
+  "app": {
+    "name": "تهانينا",
+    "description": "تطبيق لإرسال التهاني والتبريكات"
+  },
+  "common": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "search": "بحث",
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ",
+    "success": "تم بنجاح",
+    "retry": "إعادة المحاولة"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "logout": "تسجيل الخروج",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "confirm_password": "تأكيد كلمة المرور",
+    "forgot_password": "نسيت كلمة المرور؟",
+    "reset_password": "إعادة تعيين كلمة المرور"
+  },
+  "greetings": {
+    "send_greeting": "إرسال رسالة",
+    "message_type": "نوع الرسالة",
+    "select_message_type": "اختر نوع الرسالة",
+    "occasion_type": "نوع المناسبة",
+    "select_occasion_type": "اختر نوع المناسبة",
+    "occasion": "غرض المناسبة",
+    "select_occasion": "اختر غرض المناسبة",
+    "sender_name": "اسم المرسل",
+    "recipient_name": "اسم المستقبل",
+    "generate": "توليد الرسالة",
+    "generating": "جاري التوليد...",
+    "message_preview": "معاينة الرسالة",
+    "edit_message": "تعديل الرسالة",
+    "contacts": "جهات الاتصال",
+    "search_contacts": "البحث في جهات الاتصال",
+    "selected_count": "المحدد:",
+    "select_all": "تحديد الكل",
+    "deselect_all": "إلغاء تحديد الكل",
+    "no_contacts": "لا توجد جهات اتصال",
+    "signature": "مع خالص التحية والتقدير",
+    "share": {
+      "whatsapp": "إرسال عبر الواتساب",
+      "general": "مشاركة عامة",
+      "share_message": "مشاركة الرسالة",
+      "subject": "رسالة تهنئة"
+    },
+    "error": {
+      "select_required": "يرجى اختيار جميع الحقول المطلوبة",
+      "generate_message": "حدث خطأ في توليد الرسالة",
+      "load_occasions": "حدث خطأ في تحميل المناسبات",
+      "load_contacts": "حدث خطأ في تحميل جهات الاتصال",
+      "contacts_permission": "يرجى السماح بالوصول لجهات الاتصال",
+      "no_contacts": "يرجى اختيار جهة اتصال واحدة على الأقل",
+      "no_phone": "لا يوجد رقم هاتف لهذه الجهة",
+      "whatsapp_not_installed": "الواتساب غير مثبت على الجهاز"
+    }
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "language": "اللغة",
+    "theme": "المظهر",
+    "theme_light": "فاتح",
+    "theme_dark": "داكن",
+    "theme_system": "تلقائي",
+    "notifications": "الإشعارات",
+    "privacy": "الخصوصية",
+    "about": "عن التطبيق",
+    "version": "الإصدار",
+    "feedback": "إرسال ملاحظات",
+    "rate": "تقييم التطبيق"
+  },
+  "contacts": {
+    "title": "جهات الاتصال",
+    "groups": "المجموعات",
+    "add_group": "إضافة مجموعة",
+    "edit_group": "تعديل المجموعة",
+    "delete_group": "حذف المجموعة",
+    "group_name": "اسم المجموعة",
+    "add_contact": "إضافة جهة اتصال",
+    "edit_contact": "تعديل جهة الاتصال",
+    "delete_contact": "حذف جهة الاتصال",
+    "contact_name": "اسم جهة الاتصال",
+    "phone": "رقم الهاتف",
+    "email": "البريد الإلكتروني",
+    "notes": "ملاحظات"
+  },
+  "history": {
+    "title": "السجل",
+    "sent": "المرسلة",
+    "scheduled": "المجدولة",
+    "drafts": "المسودات",
+    "delete": "حذف من السجل",
+    "resend": "إعادة الإرسال",
+    "edit": "تعديل",
+    "schedule": "جدولة",
+    "date": "التاريخ",
+    "time": "الوقت",
+    "status": "الحالة",
+    "status_sent": "تم الإرسال",
+    "status_scheduled": "مجدولة",
+    "status_draft": "مسودة",
+    "status_failed": "فشل الإرسال"
+  },
+  "templates": {
+    "title": "القوالب",
+    "add": "إضافة قالب",
+    "edit": "تعديل قالب",
+    "delete": "حذف قالب",
+    "name": "اسم القالب",
+    "content": "محتوى القالب",
+    "category": "الفئة",
+    "favorite": "مفضل",
+    "share": "مشاركة القالب"
+  }
+}

@@ -6,5 +6,7 @@ class AppRoutes {
   static const home = '/home';
   static const privacy = '/privacy';
   static const sendGreeting = '/send-greeting';
+  static const enhancedSendGreeting = '/enhanced-send-greeting';
   static const surpriseMessage = '/surprise-message';
+  static const settings = '/settings';
 }

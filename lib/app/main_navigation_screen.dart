@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
-import '../features/greetings/screens/send_greeting_screen.dart';
+import '../features/greetings/screens/enhanced_send_greeting_screen.dart';
+import '../features/greetings/screens/surprise_message_screen.dart';
 import '../features/auto_reply/auto_reply_screen.dart';
 import '../features/greetings/screens/schedule_greeting_screen.dart';
 import '../features/greetings/screens/greeting_history_screen.dart';
@@ -19,7 +20,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = const [
-    SendGreetingScreen(),
+    EnhancedSendGreetingScreen(),
+    SurpriseMessageScreen(),
     AutoReplyScreen(),
     ScheduleGreetingScreen(),
     GreetingHistoryScreen(),
@@ -28,7 +30,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   ];
 
   final List<String> _labels = [
-    'إرسال',
+    'إرسال رسالة',
+    'فاجئني',
     'الرد التلقائي',
     'الجدولة',
     'السجل',
@@ -38,6 +41,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   final List<IconData> _icons = [
     Icons.send,
+    Icons.auto_awesome,
     Icons.smart_toy_outlined,
     Icons.calendar_today,
     Icons.history,

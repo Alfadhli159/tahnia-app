@@ -1,13 +1,23 @@
-// استيراد الصفحة الجديدة في أعلى الملف
-import 'package:tahania_app/features/contacts/screens/select_recipients_screen.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 
-import 'package:flutter/material.dart';
+class Group {
+  final String id;
+  final String name;
+  final List<Contact> contacts;
+
+  Group({required this.id, required this.name, required this.contacts});
+}
 
 class SelectRecipientsScreen extends StatefulWidget {
   final Function(List<Contact>, String? groupId) onRecipientsSelected;
   final List<Group> groups; // قائمة المجموعات المحفوظة
-  const SelectRecipientsScreen({super.key, required this.onRecipientsSelected, required this.groups});
+  
+  const SelectRecipientsScreen({
+    super.key, 
+    required this.onRecipientsSelected, 
+    required this.groups
+  });
 
   @override
   State<SelectRecipientsScreen> createState() => _SelectRecipientsScreenState();
@@ -74,15 +84,18 @@ class _SelectRecipientsScreenState extends State<SelectRecipientsScreen> {
                 itemCount: widget.groups.length,
                 itemBuilder: (context, idx) {
                   final group = widget.groups[idx];
-                  return ChoiceChip(
-                    label: Text(group.name),
-                    selected: selectedGroupId == group.id,
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedGroupId = selected ? group.id : null;
-                        selectedContacts.clear();
-                      });
-                    },
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    child: ChoiceChip(
+                      label: Text(group.name),
+                      selected: selectedGroupId == group.id,
+                      onSelected: (selected) {
+                        setState(() {
+                          selectedGroupId = selected ? group.id : null;
+                          selectedContacts.clear();
+                        });
+                      },
+                    ),
                   );
                 },
               ),
@@ -97,9 +110,15 @@ class _SelectRecipientsScreenState extends State<SelectRecipientsScreen> {
                     final contact = filteredContacts[idx];
                     final selected = selectedContacts.contains(contact);
                     return ListTile(
-                      leading: CircleAvatar(child: Text(contact.displayName.isNotEmpty ? contact.displayName[0] : '?')),
+                      leading: CircleAvatar(
+                        child: Text(
+                          contact.displayName.isNotEmpty ? contact.displayName[0] : '?'
+                        )
+                      ),
                       title: Text(contact.displayName),
-                      subtitle: Text(contact.phones.isNotEmpty ? contact.phones.first.number : 'بدون رقم'),
+                      subtitle: Text(
+                        contact.phones.isNotEmpty ? contact.phones.first.number : 'بدون رقم'
+                      ),
                       trailing: Checkbox(
                         value: selected,
                         onChanged: (val) {
@@ -118,12 +137,30 @@ class _SelectRecipientsScreenState extends State<SelectRecipientsScreen> {
                 ),
           ),
           // زر التأكيد
-          
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ElevatedButton(
+              onPressed: (selectedContacts.isNotEmpty || selectedGroupId != null)
+                ? () {
+                    widget.onRecipientsSelected(selectedContacts, selectedGroupId);
+                    Navigator.pop(context);
+                  }
+                : null,
+              child: Text(
+                selectedGroupId != null 
+                  ? 'تأكيد المجموعة المحددة'
+                  : 'تأكيد (${selectedContacts.length} محدد)'
+              ),
             ),
           ),
         ],
       ),
     );
   }
-}
 
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
+}

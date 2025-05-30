@@ -1,71 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../../../core/services/openai_service.dart';
-
-class ScheduledGreeting {
-  final String id;
-  final String message;
-  final DateTime scheduledTime;
-  final String recipient;
-  final String recipientType; // 'individual', 'group', 'all'
-  final bool isCompleted;
-  final DateTime createdAt;
-
-  ScheduledGreeting({
-    required this.id,
-    required this.message,
-    required this.scheduledTime,
-    required this.recipient,
-    required this.recipientType,
-    this.isCompleted = false,
-    required this.createdAt,
-  });
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'message': message,
-      'scheduledTime': scheduledTime.millisecondsSinceEpoch,
-      'recipient': recipient,
-      'recipientType': recipientType,
-      'isCompleted': isCompleted,
-      'createdAt': createdAt.millisecondsSinceEpoch,
-    };
-  }
-
-  factory ScheduledGreeting.fromMap(Map<String, dynamic> map) {
-    return ScheduledGreeting(
-      id: map['id'] ?? '',
-      message: map['message'] ?? '',
-      scheduledTime: DateTime.fromMillisecondsSinceEpoch(map['scheduledTime'] ?? 0),
-      recipient: map['recipient'] ?? '',
-      recipientType: map['recipientType'] ?? 'individual',
-      isCompleted: map['isCompleted'] ?? false,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] ?? 0),
-    );
-  }
-
-  ScheduledGreeting copyWith({
-    String? id,
-    String? message,
-    DateTime? scheduledTime,
-    String? recipient,
-    String? recipientType,
-    bool? isCompleted,
-    DateTime? createdAt,
-  }) {
-    return ScheduledGreeting(
-      id: id ?? this.id,
-      message: message ?? this.message,
-      scheduledTime: scheduledTime ?? this.scheduledTime,
-      recipient: recipient ?? this.recipient,
-      recipientType: recipientType ?? this.recipientType,
-      isCompleted: isCompleted ?? this.isCompleted,
-      createdAt: createdAt ?? this.createdAt,
-    );
-  }
-}
+import 'package:intl/intl.dart';
+import '../../../services/localization/app_localizations.dart';
+import '../../../services/scheduled_message_service.dart';
 
 class ScheduleGreetingScreen extends StatefulWidget {
   const ScheduleGreetingScreen({super.key});
@@ -74,481 +10,618 @@ class ScheduleGreetingScreen extends StatefulWidget {
   State<ScheduleGreetingScreen> createState() => _ScheduleGreetingScreenState();
 }
 
-class _ScheduleGreetingScreenState extends State<ScheduleGreetingScreen> {
-  final TextEditingController messageController = TextEditingController();
-  final TextEditingController recipientController = TextEditingController();
-  
-  DateTime selectedDate = DateTime.now().add(const Duration(days: 1));
-  TimeOfDay selectedTime = TimeOfDay.now();
-  String selectedRecipientType = 'individual';
-  bool isLoading = false;
-  bool isBoxLoading = true;
-  String? boxError;
-
-  List<ScheduledGreeting> scheduledGreetings = [];
-  late Box scheduledBox;
+class _ScheduleGreetingScreenState extends State<ScheduleGreetingScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    _initializeHive();
-    _generateInitialMessage();
-  }
-
-  Future<void> _initializeHive() async {
-    try {
-      scheduledBox = await Hive.openBox('scheduledGreetings');
-      _loadScheduledGreetings();
-      setState(() {
-        isBoxLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        boxError = 'حدث خطأ أثناء تحميل البيانات';
-        isBoxLoading = false;
-      });
-    }
-  }
-
-  void _loadScheduledGreetings() {
-    final greetingsData = scheduledBox.values.toList();
-    setState(() {
-      scheduledGreetings = greetingsData
-          .map((data) => ScheduledGreeting.fromMap(Map<String, dynamic>.from(data)))
-          .toList();
-      
-      // Sort by scheduled time
-      scheduledGreetings.sort((a, b) => a.scheduledTime.compareTo(b.scheduledTime));
-    });
-  }
-
-  Future<void> _generateInitialMessage() async {
-    setState(() => isLoading = true);
-    final msg = await OpenAIService.generateGreeting('نص');
-    messageController.text = msg;
-    setState(() => isLoading = false);
-  }
-
-  Future<void> _selectDate() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-      locale: const Locale('ar'),
-    );
-    
-    if (picked != null && picked != selectedDate) {
-      setState(() {
-        selectedDate = picked;
-      });
-    }
-  }
-
-  Future<void> _selectTime() async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: selectedTime,
-    );
-    
-    if (picked != null && picked != selectedTime) {
-      setState(() {
-        selectedTime = picked;
-      });
-    }
-  }
-
-  void _scheduleGreeting() {
-    if (messageController.text.trim().isEmpty) {
-      _showSnackBar('يرجى إدخال نص التهنئة');
-      return;
-    }
-
-    if (selectedRecipientType != 'all' && recipientController.text.trim().isEmpty) {
-      _showSnackBar('يرجى إدخال المستلم');
-      return;
-    }
-
-    final scheduledDateTime = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-      selectedTime.hour,
-      selectedTime.minute,
-    );
-
-    if (scheduledDateTime.isBefore(DateTime.now())) {
-      _showSnackBar('لا يمكن جدولة تهنئة في الماضي');
-      return;
-    }
-
-    final greeting = ScheduledGreeting(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      message: messageController.text.trim(),
-      scheduledTime: scheduledDateTime,
-      recipient: selectedRecipientType == 'all' ? 'الجميع' : recipientController.text.trim(),
-      recipientType: selectedRecipientType,
-      createdAt: DateTime.now(),
-    );
-
-    _saveScheduledGreeting(greeting);
-    _showSnackBar('تم جدولة التهنئة بنجاح');
-    _clearForm();
-  }
-
-  Future<void> _saveScheduledGreeting(ScheduledGreeting greeting) async {
-    await scheduledBox.put(greeting.id, greeting.toMap());
-    _loadScheduledGreetings();
-  }
-
-  Future<void> _deleteScheduledGreeting(String id) async {
-    await scheduledBox.delete(id);
-    _loadScheduledGreetings();
-  }
-
-  void _clearForm() {
-    messageController.clear();
-    recipientController.clear();
-    setState(() {
-      selectedDate = DateTime.now().add(const Duration(days: 1));
-      selectedTime = TimeOfDay.now();
-      selectedRecipientType = 'individual';
-    });
-    _generateInitialMessage();
-  }
-
-  void _sendNow(ScheduledGreeting greeting) async {
-    final message = Uri.encodeComponent(greeting.message);
-    final url = 'https://wa.me/?text=$message';
-
-    try {
-      if (await canLaunchUrl(Uri.parse(url))) {
-        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-        
-        // Mark as completed
-        final updatedGreeting = greeting.copyWith(isCompleted: true);
-        await _saveScheduledGreeting(updatedGreeting);
-      } else {
-        _showSnackBar('تعذر فتح واتساب');
-      }
-    } catch (e) {
-      _showSnackBar('حدث خطأ في الإرسال');
-    }
-  }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
-
-  String _formatDateTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = dateTime.difference(now);
-    
-    if (difference.inDays == 0) {
-      return 'اليوم ${_formatTime(TimeOfDay.fromDateTime(dateTime))}';
-    } else if (difference.inDays == 1) {
-      return 'غداً ${_formatTime(TimeOfDay.fromDateTime(dateTime))}';
-    } else {
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${_formatTime(TimeOfDay.fromDateTime(dateTime))}';
-    }
-  }
-
-  String _formatTime(TimeOfDay time) {
-    final hour = time.hour.toString().padLeft(2, '0');
-    final minute = time.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
+    _tabController = TabController(length: 2, vsync: this);
+    ScheduledMessageService.initialize();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('جدولة تهنئة ⏰'),
-          backgroundColor: Colors.teal,
-          foregroundColor: Colors.white,
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('الرسائل المجدولة'),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'الرسائل المجدولة'),
+            Tab(text: 'قوالب الرسائل'),
+          ],
         ),
-        body: isBoxLoading
-            ? const Center(child: CircularProgressIndicator())
-            : boxError != null
-                ? Center(child: Text(boxError!, style: const TextStyle(color: Colors.red)))
-                : Column(
-                    children: [
-                      // Form section
-                      Expanded(
-                        flex: 3,
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildLabel('نص التهنئة:'),
-                              TextField(
-                                controller: messageController,
-                                maxLines: 4,
-                                decoration: InputDecoration(
-                                  hintText: 'اكتب نص التهنئة...',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  suffixIcon: isLoading
-                                      ? const Padding(
-                                          padding: EdgeInsets.all(12),
-                                          child: SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(strokeWidth: 2),
-                                          ),
-                                        )
-                                      : IconButton(
-                                          onPressed: _generateInitialMessage,
-                                          icon: const Icon(Icons.refresh),
-                                          tooltip: 'توليد رسالة جديدة',
-                                        ),
-                                ),
-                              ),
-                              
-                              const SizedBox(height: 20),
-                              
-                              _buildLabel('نوع المستلم:'),
-                              Wrap(
-                                spacing: 12,
-                                children: [
-                                  ChoiceChip(
-                                    label: const Text('فرد'),
-                                    selected: selectedRecipientType == 'individual',
-                                    onSelected: (_) => setState(() => selectedRecipientType = 'individual'),
-                                  ),
-                                  ChoiceChip(
-                                    label: const Text('مجموعة'),
-                                    selected: selectedRecipientType == 'group',
-                                    onSelected: (_) => setState(() => selectedRecipientType = 'group'),
-                                  ),
-                                  ChoiceChip(
-                                    label: const Text('الجميع'),
-                                    selected: selectedRecipientType == 'all',
-                                    onSelected: (_) => setState(() => selectedRecipientType = 'all'),
-                                  ),
-                                ],
-                              ),
-                              
-                              const SizedBox(height: 16),
-                              
-                              if (selectedRecipientType != 'all') ...[
-                                _buildLabel('المستلم:'),
-                                TextField(
-                                  controller: recipientController,
-                                  decoration: InputDecoration(
-                                    hintText: selectedRecipientType == 'individual' 
-                                        ? 'اسم الشخص أو رقم الهاتف'
-                                        : 'اسم المجموعة',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                              ],
-                              
-                              _buildLabel('التاريخ والوقت:'),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: InkWell(
-                                      onTap: _selectDate,
-                                      child: Container(
-                                        padding: const EdgeInsets.all(16),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(color: Colors.grey),
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            const Icon(Icons.calendar_today),
-                                            const SizedBox(width: 8),
-                                            Text('${selectedDate.day}/${selectedDate.month}/${selectedDate.year}'),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: InkWell(
-                                      onTap: _selectTime,
-                                      child: Container(
-                                        padding: const EdgeInsets.all(16),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(color: Colors.grey),
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            const Icon(Icons.access_time),
-                                            const SizedBox(width: 8),
-                                            Text(_formatTime(selectedTime)),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              
-                              const SizedBox(height: 24),
-                              
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton.icon(
-                                  onPressed: _scheduleGreeting,
-                                  icon: const Icon(Icons.schedule, color: Colors.white),
-                                  label: const Text(
-                                    'جدولة التهنئة',
-                                    style: TextStyle(fontSize: 16, color: Colors.white),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.teal,
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      
-                      // Scheduled greetings list
-                      Expanded(
-                        flex: 2,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
-                            border: Border(top: BorderSide(color: Colors.grey.shade300)),
-                          ),
-                          child: Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.schedule, color: Colors.teal),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'التهاني المجدولة (${scheduledGreetings.length})',
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Expanded(
-                                child: scheduledGreetings.isEmpty
-                                    ? const Center(
-                                        child: Text(
-                                          'لا توجد تهاني مجدولة',
-                                          style: TextStyle(color: Colors.grey),
-                                        ),
-                                      )
-                                    : ListView.builder(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                                        itemCount: scheduledGreetings.length,
-                                        itemBuilder: (context, index) {
-                                          final greeting = scheduledGreetings[index];
-                                          final isPast = greeting.scheduledTime.isBefore(DateTime.now());
-                                          
-                                          return Card(
-                                            margin: const EdgeInsets.only(bottom: 8),
-                                            child: ListTile(
-                                              leading: CircleAvatar(
-                                                backgroundColor: greeting.isCompleted 
-                                                    ? Colors.green 
-                                                    : isPast 
-                                                        ? Colors.orange 
-                                                        : Colors.teal,
-                                                child: Icon(
-                                                  greeting.isCompleted 
-                                                      ? Icons.check 
-                                                      : isPast 
-                                                          ? Icons.warning 
-                                                          : Icons.schedule,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                              title: Text(
-                                                greeting.recipient,
-                                                style: const TextStyle(fontWeight: FontWeight.bold),
-                                              ),
-                                              subtitle: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    greeting.message.length > 50
-                                                        ? '${greeting.message.substring(0, 50)}...'
-                                                        : greeting.message,
-                                                  ),
-                                                  const SizedBox(height: 4),
-                                                  Text(
-                                                    _formatDateTime(greeting.scheduledTime),
-                                                    style: TextStyle(
-                                                      color: isPast ? Colors.orange : Colors.teal,
-                                                      fontWeight: FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              trailing: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  if (!greeting.isCompleted)
-                                                    IconButton(
-                                                      onPressed: () => _sendNow(greeting),
-                                                      icon: const Icon(Icons.send, color: Colors.teal),
-                                                      tooltip: 'إرسال الآن',
-                                                    ),
-                                                  IconButton(
-                                                    onPressed: () => _deleteScheduledGreeting(greeting.id),
-                                                    icon: const Icon(Icons.delete, color: Colors.red),
-                                                    tooltip: 'حذف',
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: _showSearchDialog,
+          ),
+        ],
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildScheduledMessagesTab(),
+          _buildTemplatesTab(),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddMessageDialog(context),
+        child: const Icon(Icons.add),
       ),
     );
   }
 
-  Widget _buildLabel(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        text,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+  Widget _buildScheduledMessagesTab() {
+    return ValueListenableBuilder<List<ScheduledMessage>>(
+      valueListenable: ScheduledMessageService.messagesNotifier,
+      builder: (context, messages, child) {
+        final filteredMessages = _filterMessages(messages);
+        
+        if (filteredMessages.isEmpty) {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.schedule, size: 64, color: Colors.grey),
+                SizedBox(height: 16),
+                Text(
+                  'لا توجد رسائل مجدولة',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'اضغط على + لإضافة رسالة جديدة',
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ],
+            ),
+          );
+        }
+        
+        return ListView.builder(
+          itemCount: filteredMessages.length,
+          itemBuilder: (context, index) {
+            final message = filteredMessages[index];
+            return _buildMessageCard(message);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildTemplatesTab() {
+    return ValueListenableBuilder<List<MessageTemplate>>(
+      valueListenable: ScheduledMessageService.templatesNotifier,
+      builder: (context, templates, child) {
+        if (templates.isEmpty) {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.view_module, size: 64, color: Colors.grey),
+                SizedBox(height: 16),
+                Text(
+                  'لا توجد قوالب',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+              ],
+            ),
+          );
+        }
+        
+        return ListView.builder(
+          itemCount: templates.length,
+          itemBuilder: (context, index) {
+            final template = templates[index];
+            return _buildTemplateCard(template);
+          },
+        );
+      },
+    );
+  }
+
+  List<ScheduledMessage> _filterMessages(List<ScheduledMessage> messages) {
+    if (_searchQuery.isEmpty) return messages;
+    
+    return messages.where((message) {
+      return message.content.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+             message.recipientName.toLowerCase().contains(_searchQuery.toLowerCase());
+    }).toList();
+  }
+
+  Widget _buildMessageCard(ScheduledMessage message) {
+    final isOverdue = message.scheduledTime.isBefore(DateTime.now());
+    final formattedDate = DateFormat('yyyy/MM/dd HH:mm').format(message.scheduledTime);
+    
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: message.isEnabled 
+              ? (isOverdue ? Colors.red : Colors.green)
+              : Colors.grey,
+          child: Icon(
+            message.isEnabled 
+                ? (isOverdue ? Icons.warning : Icons.schedule)
+                : Icons.pause,
+            color: Colors.white,
+          ),
+        ),
+        title: Text(
+          message.recipientName,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              message.content,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              formattedDate,
+              style: TextStyle(
+                fontSize: 12,
+                color: isOverdue ? Colors.red : Colors.blue,
+              ),
+            ),
+            if (message.repeatType != RepeatType.none)
+              Text(
+                'يتكرر: ${_getRepeatTypeText(message.repeatType)}',
+                style: const TextStyle(fontSize: 12, color: Colors.orange),
+              ),
+          ],
+        ),
+        trailing: PopupMenuButton<String>(
+          onSelected: (value) => _handleMessageAction(value, message),
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 'toggle',
+              child: ListTile(
+                leading: Icon(message.isEnabled ? Icons.pause : Icons.play_arrow),
+                title: Text(message.isEnabled ? 'تعطيل' : 'تفعيل'),
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'edit',
+              child: ListTile(
+                leading: Icon(Icons.edit),
+                title: Text('تعديل'),
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'duplicate',
+              child: ListTile(
+                leading: Icon(Icons.copy),
+                title: Text('نسخ'),
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'delete',
+              child: ListTile(
+                leading: Icon(Icons.delete, color: Colors.red),
+                title: Text('حذف', style: TextStyle(color: Colors.red)),
+              ),
+            ),
+          ],
+        ),
+        onTap: () => _showEditMessageDialog(context, message),
+      ),
+    );
+  }
+
+  Widget _buildTemplateCard(MessageTemplate template) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: ListTile(
+        leading: const CircleAvatar(
+          backgroundColor: Colors.blue,
+          child: Icon(Icons.view_module, color: Colors.white),
+        ),
+        title: Text(
+          template.name,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(
+          template.content,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: PopupMenuButton<String>(
+          onSelected: (value) => _handleTemplateAction(value, template),
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'use',
+              child: ListTile(
+                leading: Icon(Icons.send),
+                title: Text('استخدام'),
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'edit',
+              child: ListTile(
+                leading: Icon(Icons.edit),
+                title: Text('تعديل'),
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'delete',
+              child: ListTile(
+                leading: Icon(Icons.delete, color: Colors.red),
+                title: Text('حذف', style: TextStyle(color: Colors.red)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getRepeatTypeText(RepeatType type) {
+    switch (type) {
+      case RepeatType.daily:
+        return 'يومياً';
+      case RepeatType.weekly:
+        return 'أسبوعياً';
+      case RepeatType.monthly:
+        return 'شهرياً';
+      case RepeatType.yearly:
+        return 'سنوياً';
+      case RepeatType.none:
+        return 'لا يتكرر';
+    }
+  }
+
+  void _handleMessageAction(String action, ScheduledMessage message) {
+    switch (action) {
+      case 'toggle':
+        ScheduledMessageService.toggleMessage(message.id, !message.isEnabled);
+        break;
+      case 'edit':
+        _showEditMessageDialog(context, message);
+        break;
+      case 'duplicate':
+        _duplicateMessage(message);
+        break;
+      case 'delete':
+        _showDeleteConfirmation(context, message);
+        break;
+    }
+  }
+
+  void _handleTemplateAction(String action, MessageTemplate template) {
+    switch (action) {
+      case 'use':
+        _useTemplate(template);
+        break;
+      case 'edit':
+        // Implement template editing
+        break;
+      case 'delete':
+        ScheduledMessageService.deleteTemplate(template.id);
+        break;
+    }
+  }
+
+  void _duplicateMessage(ScheduledMessage message) {
+    final newMessage = ScheduledMessage(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      content: message.content,
+      recipientName: message.recipientName,
+      recipientPhone: message.recipientPhone,
+      scheduledTime: DateTime.now().add(const Duration(hours: 1)),
+      repeatType: message.repeatType,
+      isEnabled: true,
+      createdAt: DateTime.now(),
+    );
+    ScheduledMessageService.addMessage(newMessage);
+  }
+
+  void _useTemplate(MessageTemplate template) {
+    _showAddMessageDialog(context, template: template);
+  }
+
+  void _showSearchDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('البحث'),
+        content: TextField(
+          decoration: const InputDecoration(
+            hintText: 'ابحث في الرسائل...',
+            prefixIcon: Icon(Icons.search),
+          ),
+          onChanged: (value) {
+            setState(() => _searchQuery = value);
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() => _searchQuery = '');
+              Navigator.pop(context);
+            },
+            child: const Text('مسح'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إغلاق'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddMessageDialog(BuildContext context, {MessageTemplate? template}) {
+    showDialog(
+      context: context,
+      builder: (context) => _MessageDialog(template: template),
+    );
+  }
+
+  void _showEditMessageDialog(BuildContext context, ScheduledMessage message) {
+    showDialog(
+      context: context,
+      builder: (context) => _MessageDialog(message: message),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, ScheduledMessage message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تأكيد الحذف'),
+        content: const Text('هل أنت متأكد من حذف هذه الرسالة المجدولة؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScheduledMessageService.deleteMessage(message.id);
+            },
+            child: const Text('حذف', style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }
 
   @override
   void dispose() {
-    messageController.dispose();
-    recipientController.dispose();
+    _tabController.dispose();
+    super.dispose();
+  }
+}
+
+class _MessageDialog extends StatefulWidget {
+  final ScheduledMessage? message;
+  final MessageTemplate? template;
+
+  const _MessageDialog({this.message, this.template});
+
+  @override
+  State<_MessageDialog> createState() => _MessageDialogState();
+}
+
+class _MessageDialogState extends State<_MessageDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _contentController;
+  late TextEditingController _recipientNameController;
+  late TextEditingController _recipientPhoneController;
+  DateTime _selectedDate = DateTime.now().add(const Duration(hours: 1));
+  TimeOfDay _selectedTime = TimeOfDay.now();
+  RepeatType _repeatType = RepeatType.none;
+  bool _isEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _contentController = TextEditingController(
+      text: widget.message?.content ?? widget.template?.content ?? '',
+    );
+    _recipientNameController = TextEditingController(
+      text: widget.message?.recipientName ?? '',
+    );
+    _recipientPhoneController = TextEditingController(
+      text: widget.message?.recipientPhone ?? '',
+    );
+    
+    if (widget.message != null) {
+      _selectedDate = widget.message!.scheduledTime;
+      _selectedTime = TimeOfDay.fromDateTime(widget.message!.scheduledTime);
+      _repeatType = widget.message!.repeatType;
+      _isEnabled = widget.message!.isEnabled;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.message == null ? 'إضافة رسالة مجدولة' : 'تعديل الرسالة'),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _recipientNameController,
+                decoration: const InputDecoration(
+                  labelText: 'اسم المستلم',
+                  prefixIcon: Icon(Icons.person),
+                ),
+                validator: (value) {
+                  if (value?.trim().isEmpty ?? true) {
+                    return 'يرجى إدخال اسم المستلم';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _recipientPhoneController,
+                decoration: const InputDecoration(
+                  labelText: 'رقم الهاتف',
+                  prefixIcon: Icon(Icons.phone),
+                ),
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value?.trim().isEmpty ?? true) {
+                    return 'يرجى إدخال رقم الهاتف';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _contentController,
+                decoration: const InputDecoration(
+                  labelText: 'محتوى الرسالة',
+                  prefixIcon: Icon(Icons.message),
+                ),
+                maxLines: 3,
+                validator: (value) {
+                  if (value?.trim().isEmpty ?? true) {
+                    return 'يرجى إدخال محتوى الرسالة';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Icons.calendar_today),
+                title: const Text('التاريخ'),
+                subtitle: Text(DateFormat('yyyy/MM/dd').format(_selectedDate)),
+                onTap: _selectDate,
+              ),
+              ListTile(
+                leading: const Icon(Icons.access_time),
+                title: const Text('الوقت'),
+                subtitle: Text(_selectedTime.format(context)),
+                onTap: _selectTime,
+              ),
+              DropdownButtonFormField<RepeatType>(
+                value: _repeatType,
+                decoration: const InputDecoration(
+                  labelText: 'التكرار',
+                  prefixIcon: Icon(Icons.repeat),
+                ),
+                items: RepeatType.values.map((type) {
+                  return DropdownMenuItem(
+                    value: type,
+                    child: Text(_getRepeatTypeText(type)),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() => _repeatType = value!);
+                },
+              ),
+              SwitchListTile(
+                title: const Text('مفعل'),
+                value: _isEnabled,
+                onChanged: (value) {
+                  setState(() => _isEnabled = value);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('إلغاء'),
+        ),
+        TextButton(
+          onPressed: _saveMessage,
+          child: const Text('حفظ'),
+        ),
+      ],
+    );
+  }
+
+  String _getRepeatTypeText(RepeatType type) {
+    switch (type) {
+      case RepeatType.daily:
+        return 'يومياً';
+      case RepeatType.weekly:
+        return 'أسبوعياً';
+      case RepeatType.monthly:
+        return 'شهرياً';
+      case RepeatType.yearly:
+        return 'سنوياً';
+      case RepeatType.none:
+        return 'لا يتكرر';
+    }
+  }
+
+  Future<void> _selectDate() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (date != null) {
+      setState(() => _selectedDate = date);
+    }
+  }
+
+  Future<void> _selectTime() async {
+    final time = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+    );
+    if (time != null) {
+      setState(() => _selectedTime = time);
+    }
+  }
+
+  void _saveMessage() {
+    if (!_formKey.currentState!.validate()) return;
+
+    final scheduledTime = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      _selectedTime.hour,
+      _selectedTime.minute,
+    );
+
+    final message = ScheduledMessage(
+      id: widget.message?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      content: _contentController.text.trim(),
+      recipientName: _recipientNameController.text.trim(),
+      recipientPhone: _recipientPhoneController.text.trim(),
+      scheduledTime: scheduledTime,
+      repeatType: _repeatType,
+      isEnabled: _isEnabled,
+      createdAt: widget.message?.createdAt ?? DateTime.now(),
+    );
+
+    if (widget.message == null) {
+      ScheduledMessageService.addMessage(message);
+    } else {
+      ScheduledMessageService.updateMessage(message);
+    }
+
+    Navigator.pop(context);
+  }
+
+  @override
+  void dispose() {
+    _contentController.dispose();
+    _recipientNameController.dispose();
+    _recipientPhoneController.dispose();
     super.dispose();
   }
 }

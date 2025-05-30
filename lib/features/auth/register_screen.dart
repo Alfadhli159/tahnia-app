@@ -48,7 +48,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             onPressed: () async {
               final Uri emailApp = Uri.parse('https://mail.google.com/');
               if (await canLaunchUrl(emailApp)) {
-                await launchUrl(emailApp);
+                await launchUrl(emailApp, mode: LaunchMode.externalApplication);
               }
             },
           ),
