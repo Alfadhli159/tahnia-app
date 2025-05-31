@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import 'package:flutter/material.dart';
 import '../../services/settings_service.dart';
 
@@ -255,3 +256,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.dispose();
   }
 }
+=======
+// كود شاشة الإعدادات هنا
+>>>>>>> 436a175 (after apply.changes)

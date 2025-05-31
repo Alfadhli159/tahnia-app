@@ -1,3 +1,6 @@
+---file: lib/features/home/home_screen.dart
+// الصق هنا كود الصفحة كامل الجديد
+---file: lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/theme.dart';
@@ -48,3 +51,9 @@ class TahniaApp extends StatelessWidget {
     );
   }
 }
+---file: lib/widgets/custom_button.dart
+// هنا كود زر جديد أو معدل
+
+---file: lib/features/settings/settings_screen.dart
+// كود شاشة الإعدادات هنا
+
