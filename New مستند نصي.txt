@@ -1,0 +1,101 @@
+@echo off
+chcp 65001 >nul
+echo 🏗️ إعادة هيكلة مشروع تطبيق تهنئة...
+echo.
+
+cd C:\development\tahnia-Genspark
+
+echo 📁 إنشاء هيكل المجلدات الجديد...
+
+mkdir lib\core\constants 2>nul
+mkdir lib\core\theme 2>nul
+mkdir lib\core\utils 2>nul
+mkdir lib\core\services 2>nul
+mkdir lib\core\errors 2>nul
+mkdir lib\core\widgets 2>nul
+
+mkdir lib\app\routes 2>nul
+mkdir lib\app\navigation 2>nul
+
+mkdir lib\features\authentication\data\datasources 2>nul
+mkdir lib\features\authentication\data\models 2>nul
+mkdir lib\features\authentication\data\repositories 2>nul
+mkdir lib\features\authentication\domain\entities 2>nul
+mkdir lib\features\authentication\domain\repositories 2>nul
+mkdir lib\features\authentication\domain\usecases 2>nul
+mkdir lib\features\authentication\presentation\screens 2>nul
+mkdir lib\features\authentication\presentation\widgets 2>nul
+mkdir lib\features\authentication\presentation\controllers 2>nul
+
+mkdir lib\features\onboarding\presentation\screens 2>nul
+mkdir lib\features\onboarding\presentation\widgets 2>nul
+
+mkdir lib\features\greetings\data\datasources 2>nul
+mkdir lib\features\greetings\data\models 2>nul
+mkdir lib\features\greetings\data\repositories 2>nul
+mkdir lib\features\greetings\domain\entities 2>nul
+mkdir lib\features\greetings\domain\repositories 2>nul
+mkdir lib\features\greetings\domain\usecases 2>nul
+mkdir lib\features\greetings\presentation\screens 2>nul
+mkdir lib\features\greetings\presentation\widgets 2>nul
+mkdir lib\features\greetings\presentation\controllers 2>nul
+
+mkdir lib\features\contacts\data\datasources 2>nul
+mkdir lib\features\contacts\data\models 2>nul
+mkdir lib\features\contacts\data\repositories 2>nul
+mkdir lib\features\contacts\domain\entities 2>nul
+mkdir lib\features\contacts\domain\repositories 2>nul
+mkdir lib\features\contacts\domain\usecases 2>nul
+mkdir lib\features\contacts\presentation\screens 2>nul
+mkdir lib\features\contacts\presentation\widgets 2>nul
+mkdir lib\features\contacts\presentation\controllers 2>nul
+
+mkdir lib\features\auto_reply\presentation\screens 2>nul
+mkdir lib\features\auto_reply\presentation\widgets 2>nul
+
+mkdir lib\features\ai_service\data\datasources 2>nul
+mkdir lib\features\ai_service\domain\entities 2>nul
+mkdir lib\features\ai_service\presentation\screens 2>nul
+
+mkdir lib\features\settings\presentation\screens 2>nul
+mkdir lib\features\settings\presentation\widgets 2>nul
+
+mkdir lib\shared\widgets 2>nul
+mkdir lib\shared\models 2>nul
+mkdir lib\shared\extensions 2>nul
+
+echo ✅ تم إنشاء هيكل المجلدات!
+
+echo 🔄 نقل الملفات الموجودة...
+
+if exist "lib\app\main_navigation_screen.dart" (
+    move "lib\app\main_navigation_screen.dart" "lib\app\navigation\" >nul 2>&1
+)
+
+if exist "lib\features\greetings\screens\send_greeting_screen.dart" (
+    move "lib\features\greetings\screens\send_greeting_screen.dart" "lib\features\greetings\presentation\screens\" >nul 2>&1
+)
+
+if exist "lib\features\greetings\screens\surprise_message_screen.dart" (
+    move "lib\features\greetings\screens\surprise_message_screen.dart" "lib\features\greetings\presentation\screens\" >nul 2>&1
+)
+
+if exist "lib\features\greetings\screens\schedule_greeting_screen.dart" (
+    move "lib\features\greetings\screens\schedule_greeting_screen.dart" "lib\features\greetings\presentation\screens\" >nul 2>&1
+)
+
+if exist "lib\features\greetings\screens\greeting_history_screen.dart" (
+    move "lib\features\greetings\screens\greeting_history_screen.dart" "lib\features\greetings\presentation\screens\" >nul 2>&1
+)
+
+if exist "lib\features\greetings\screens\greeting_templates_screen.dart" (
+    move "lib\features\greetings\screens\greeting_templates_screen.dart" "lib\features\greetings\presentation\screens\" >nul 2>&1
+)
+
+if exist "lib\features\contacts\screens\groups_screen.dart" (
+    move "lib\features\contacts\screens\groups_screen.dart" "lib\features\contacts\presentation\screens\" >nul 2>&1
+)
+
+echo ✅ تم نقل الملفات!
+
+pause
