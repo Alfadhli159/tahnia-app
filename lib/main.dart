@@ -1,50 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'core/theme.dart';
+import 'app/theme.dart'; // أو عدل للمسار الصحيح
 import 'core/services/navigation_service.dart';
-import 'features/splash/splash_screen.dart';
-import 'features/auth/login_screen.dart';
-import 'features/auth/register_screen.dart';
-import 'features/home/home_screen.dart';
+import 'app/app_routes.dart'; // حسب بنية المشروع
 
 void main() {
   runApp(const TahniaApp());
 }
 
 class TahniaApp extends StatelessWidget {
-  const TahniaApp({super.key});
+  const TahniaApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'تهنئة',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
+      title: 'Tahnia App',
+      theme: AppTheme.lightTheme, // عدل اسم AppTheme للمكان المناسب
       navigatorKey: NavigationService.navigatorKey,
-      locale: const Locale('ar', ''),
-      supportedLocales: const [
-        Locale('ar', ''),
-        // Locale('en', ''), // يمكن تفعيل الإنجليزية لاحقًا
-      ],
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const SplashScreen(),
-        '/login': (context) => const LoginScreen(),
-        '/register': (context) => const RegisterScreen(),
-        '/home': (context) => const HomeScreen(),
-      },
-      builder: (context, child) {
-        // لضمان اتجاه التطبيق من اليمين لليسار
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: child ?? const SizedBox.shrink(),
-        );
-      },
+      // home: MainNavigationScreen(), // أو أي صفحة البداية
+      initialRoute: AppRoutes.initial,
+      routes: AppRoutes.routes,
+      debugShowCheckedModeBanner: false,
     );
   }
 }
