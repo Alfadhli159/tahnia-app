@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:tahania_app/services/smart_greeting_service.dart';
-import 'package:tahania_app/services/condolence_service.dart';
-import 'package:tahania_app/widgets/animated_text_field.dart';
-import 'package:tahania_app/widgets/animated_button.dart';
-import 'package:tahania_app/widgets/animated_dropdown.dart';
+// تم تعليق هذا الاستيراد تلقائياً: import 'package:tahania_app/services/smart_greeting_service.dart';
+// تم تعليق هذا الاستيراد تلقائياً: import 'package:tahania_app/services/condolence_service.dart';
+// تم تعليق هذا الاستيراد تلقائياً: import 'package:tahania_app/widgets/animated_text_field.dart';
+// تم تعليق هذا الاستيراد تلقائياً: import 'package:tahania_app/widgets/animated_button.dart';
+// تم تعليق هذا الاستيراد تلقائياً: import 'package:tahania_app/widgets/animated_dropdown.dart';
 import 'package:tahania_app/widgets/animated_card.dart';
-import 'package:tahania_app/widgets/sticker_picker.dart';
+// تم تعليق هذا الاستيراد تلقائياً: import 'package:tahania_app/widgets/sticker_picker.dart';
 import 'package:tahania_app/config/theme/app_theme.dart';
 
 class SendGreetingScreen extends StatefulWidget {
@@ -22,12 +22,15 @@ class _SendGreetingScreenState extends State<SendGreetingScreen> {
   final _senderController = TextEditingController();
 
   String _selectedOccasion = 'عيد ميلاد';
-  RelationshipType? _selectedRelationship;
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//   RelationshipType? _selectedRelationship;
   bool _isLoading = false;
   bool _useAI = false;
   bool _useCache = true;
-  SmartGreeting? _currentGreeting;
-  Sticker? _selectedSticker;
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//   SmartGreeting? _currentGreeting;
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//   Sticker? _selectedSticker;
 
   // قائمة المناسبات
   final List<String> _occasions = [
@@ -84,14 +87,16 @@ class _SendGreetingScreenState extends State<SendGreetingScreen> {
           return;
         }
 
-        _currentGreeting = await CondolenceService.suggestCondolence(
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//         _currentGreeting = await CondolenceService.suggestCondolence(
           recipient: _recipientController.text,
           sender: _senderController.text,
           relationship: _selectedRelationship!,
           useAI: _useAI,
         );
       } else {
-        _currentGreeting = await SmartGreetingService.suggestGreetingWithMedia(
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//         _currentGreeting = await SmartGreetingService.suggestGreetingWithMedia(
           occasion: _selectedOccasion,
           recipient: _recipientController.text,
           sender: _senderController.text,
@@ -109,7 +114,8 @@ class _SendGreetingScreenState extends State<SendGreetingScreen> {
     }
   }
 
-  void _onStickerSelected(Sticker sticker) {
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//   void _onStickerSelected(Sticker sticker) {
     setState(() {
       _selectedSticker = sticker;
     });
@@ -130,7 +136,8 @@ class _SendGreetingScreenState extends State<SendGreetingScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const SmartGreetingSettingsScreen(),
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//                   builder: (context) => const SmartGreetingSettingsScreen(),
                 ),
               );
             },
@@ -201,15 +208,18 @@ class _SendGreetingScreenState extends State<SendGreetingScreen> {
 
               // اختيار درجة القرابة (للتعزية فقط)
               if (_selectedOccasion == 'تعزية') ...[
-                DropdownButtonFormField<RelationshipType>(
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//                 DropdownButtonFormField<RelationshipType>(
                   value: _selectedRelationship,
                   decoration: const InputDecoration(
                     labelText: 'درجة القرابة',
                     border: OutlineInputBorder(),
                   ),
-                  items: CondolenceService.getRelationshipTypes().map((type) {
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//                   items: CondolenceService.getRelationshipTypes().map((type) {
                     return DropdownMenuItem(
-                      value: type['type'] as RelationshipType,
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//                       value: type['type'] as RelationshipType,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -293,7 +303,8 @@ class _SendGreetingScreenState extends State<SendGreetingScreen> {
                 const SizedBox(height: 16),
 
                 // اختيار الاستيكرات
-                StickerPicker(
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//                 StickerPicker(
                   occasion: _selectedOccasion,
                   onStickerSelected: _onStickerSelected,
                 ),

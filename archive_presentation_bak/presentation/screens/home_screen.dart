@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tahania_app/screens/send_greeting_screen.dart';
 import 'package:tahania_app/screens/official_messages_screen.dart';
-import 'package:tahania_app/screens/auto_reply_screen.dart';
+// تم تعليق هذا الاستيراد تلقائياً: import 'package:tahania_app/screens/auto_reply_screen.dart';
 import 'package:tahania_app/config/theme/app_theme.dart';
 
 class HomeScreen extends StatelessWidget {

@@ -60,7 +60,8 @@ class PosterGenerator {
       final recorder = ui.PictureRecorder();
       final canvas = Canvas(recorder);
       
-      // Sticker dimensions (smaller, square)
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//       // Sticker dimensions (smaller, square)
       const double size = 400;
       
       // Background with rounded corners

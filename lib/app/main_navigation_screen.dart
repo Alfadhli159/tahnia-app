@@ -3,10 +3,10 @@ import 'package:flutter/cupertino.dart';
 
 import '../features/greetings/screens/enhanced_send_greeting_screen.dart';
 import '../features/greetings/screens/surprise_message_screen.dart';
-import '../features/auto_reply/auto_reply_screen.dart';
+// تم تعليق هذا الاستيراد تلقائياً: import '../features/auto_reply/auto_reply_screen.dart';
 import '../features/greetings/screens/schedule_greeting_screen.dart';
-import '../features/greetings/screens/greeting_history_screen.dart';
-import '../features/greetings/screens/greeting_templates_screen.dart';
+// تم تعليق هذا الاستيراد تلقائياً: import '../features/greetings/screens/greeting_history_screen.dart';
+// تم تعليق هذا الاستيراد تلقائياً: import '../features/greetings/screens/greeting_templates_screen.dart';
 import '../features/settings/settings_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {

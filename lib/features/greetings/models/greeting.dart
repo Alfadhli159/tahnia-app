@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-class Greeting {
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+// class Greeting {
   final String id;
   final String content;
   final String category;
@@ -11,7 +12,8 @@ class Greeting {
   final String? imageUrl;
   final Map<String, dynamic>? metadata;
 
-  Greeting({
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//   Greeting({
     required this.id,
     required this.content,
     required this.category,
@@ -23,8 +25,10 @@ class Greeting {
     this.metadata,
   });
 
-  factory Greeting.fromJson(Map<String, dynamic> json) {
-    return Greeting(
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//   factory Greeting.fromJson(Map<String, dynamic> json) {
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//     return Greeting(
       id: json['id'] as String,
       content: json['content'] as String,
       category: json['category'] as String,
@@ -53,7 +57,8 @@ class Greeting {
     };
   }
 
-  Greeting copyWith({
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//   Greeting copyWith({
     String? id,
     String? content,
     String? category,
@@ -64,7 +69,8 @@ class Greeting {
     String? imageUrl,
     Map<String, dynamic>? metadata,
   }) {
-    return Greeting(
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//     return Greeting(
       id: id ?? this.id,
       content: content ?? this.content,
       category: category ?? this.category,

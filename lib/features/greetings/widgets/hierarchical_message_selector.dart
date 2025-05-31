@@ -31,7 +31,8 @@ class HierarchicalMessageSelector extends StatefulWidget {
 
 class _HierarchicalMessageSelectorState extends State<HierarchicalMessageSelector>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  Map<String, MessageCategory> _categories = {};
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//   Map<String, MessageCategory> _categories = {};
   List<String> _messageTypes = [];
   List<String> _occasions = [];
   List<String> _purposes = [];

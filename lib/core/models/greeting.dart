@@ -1,21 +1,25 @@
-class Greeting {
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+// class Greeting {
   final String content;
   final String provider;
   final bool isGenerated;
   final DateTime timestamp;
 
-  const Greeting({
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//   const Greeting({
     required this.content,
     required this.provider,
     required this.isGenerated,
     required this.timestamp,
   });
 
-  factory Greeting.fromAI({
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//   factory Greeting.fromAI({
     required String content,
     required String provider,
   }) {
-    return Greeting(
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//     return Greeting(
       content: content,
       provider: provider,
       isGenerated: true,
@@ -23,10 +27,12 @@ class Greeting {
     );
   }
 
-  factory Greeting.fallback({
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//   factory Greeting.fallback({
     required String content,
   }) {
-    return Greeting(
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//     return Greeting(
       content: content,
       provider: 'fallback',
       isGenerated: false,
@@ -43,8 +49,10 @@ class Greeting {
     };
   }
 
-  factory Greeting.fromJson(Map<String, dynamic> json) {
-    return Greeting(
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//   factory Greeting.fromJson(Map<String, dynamic> json) {
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//     return Greeting(
       content: json['content'] as String,
       provider: json['provider'] as String,
       isGenerated: json['isGenerated'] as bool,

@@ -11,7 +11,8 @@ class AIService {
   static bool _isInitialized = false;
 
   /// توليد تهنئة باستخدام الذكاء الاصطناعي مع نظام احتياطي ذكي
-  static Future<Greeting> generateGreeting(
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//   static Future<Greeting> generateGreeting(
     String prompt, {
     String? senderName,
     String? recipientName,
@@ -43,7 +44,8 @@ class AIService {
     try {
       final greeting = await _callAIAPI(provider, prompt);
       _logger.i('✅ تم توليد الرسالة بنجاح باستخدام ${provider.name}');
-      return Greeting.fromAI(content: greeting, provider: provider.name);
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//       return Greeting.fromAI(content: greeting, provider: provider.name);
     } catch (e) {
       _logger.e('❌ فشل في توليد الرسالة: $e');
       
@@ -58,7 +60,8 @@ class AIService {
           try {
             final greeting = await _callAIAPI(alternativeProvider, prompt);
             _logger.i('✅ تم توليد الرسالة بنجاح باستخدام المزود البديل');
-            return Greeting.fromAI(content: greeting, provider: alternativeProvider.name);
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//             return Greeting.fromAI(content: greeting, provider: alternativeProvider.name);
           } catch (e2) {
             _logger.e('❌ فشل المزود البديل أيضاً: $e2');
           }
@@ -145,7 +148,8 @@ class AIService {
   }
 
   /// توليد رسالة احتياطية
-  static Greeting _generateFallbackGreeting(
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//   static Greeting _generateFallbackGreeting(
     String prompt, {
     String? senderName,
     String? recipientName,
@@ -164,7 +168,8 @@ class AIService {
       purpose: purpose,
     );
     
-    return Greeting.fallback(content: content);
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//     return Greeting.fallback(content: content);
   }
 
   /// رسائل خطأ مُعرَّبة للمستخدم النهائي

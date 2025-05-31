@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tahania_app/services/official_message_service.dart';
+// تم تعليق هذا الاستيراد تلقائياً: import 'package:tahania_app/services/official_message_service.dart';
 import 'package:tahania_app/config/theme/app_theme.dart';
 
 class OfficialMessagesScreen extends StatefulWidget {
@@ -10,7 +10,8 @@ class OfficialMessagesScreen extends StatefulWidget {
 }
 
 class _OfficialMessagesScreenState extends State<OfficialMessagesScreen> {
-  MessageCategory? _selectedCategory;
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//   MessageCategory? _selectedCategory;
   String _searchQuery = '';
   bool _showUrgentOnly = false;
 
@@ -42,9 +43,11 @@ class _OfficialMessagesScreenState extends State<OfficialMessagesScreen> {
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: OfficialMessageService.getCategories().length,
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//               itemCount: OfficialMessageService.getCategories().length,
               itemBuilder: (context, index) {
-                final category = OfficialMessageService.getCategories()[index];
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//                 final category = OfficialMessageService.getCategories()[index];
                 final isSelected = _selectedCategory == category['type'];
                 
                 return Padding(
@@ -52,7 +55,8 @@ class _OfficialMessagesScreenState extends State<OfficialMessagesScreen> {
                   child: InkWell(
                     onTap: () {
                       setState(() {
-                        _selectedCategory = isSelected ? null : category['type'] as MessageCategory;
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//                         _selectedCategory = isSelected ? null : category['type'] as MessageCategory;
                       });
                     },
                     child: Column(
@@ -214,10 +218,13 @@ class _OfficialMessagesScreenState extends State<OfficialMessagesScreen> {
     );
   }
 
-  List<OfficialMessage> _getFilteredMessages() {
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//   List<OfficialMessage> _getFilteredMessages() {
     var messages = _selectedCategory != null
-        ? OfficialMessageService.getMessagesByCategory(_selectedCategory!)
-        : OfficialMessageService.getAllMessages();
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//         ? OfficialMessageService.getMessagesByCategory(_selectedCategory!)
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//         : OfficialMessageService.getAllMessages();
 
     if (_showUrgentOnly) {
       messages = messages.where((message) => message.isUrgent).toList();
@@ -273,7 +280,8 @@ class MessageSearchDelegate extends SearchDelegate {
   }
 
   Widget _buildSearchResults(BuildContext context) {
-    final messages = OfficialMessageService.searchMessages(query);
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//     final messages = OfficialMessageService.searchMessages(query);
     final theme = Theme.of(context);
 
     if (messages.isEmpty) {

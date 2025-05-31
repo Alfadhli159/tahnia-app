@@ -1,40 +1,45 @@
 import os
-import tkinter as tk
-from tkinter import messagebox
+import re
 
-def apply_patch(file_path, new_content):
-    folder = os.path.dirname(file_path)
-    if not os.path.exists(folder):
-        os.makedirs(folder)
-    with open(file_path, 'w', encoding='utf-8') as f:
-        f.write(new_content)
+# قائمة التغييرات (بحث واستبدال)
+UPDATES = [
+    # تصحيح استيراد shared_preferences الخاطئ
+    {
+        "pattern": r"import\s+'package:shared_preferences\.dart';",
+        "replacement": "import 'package:shared_preferences/shared_preferences.dart';"
+    },
+    # تعليق استيراد sticker_view
+    {
+        "pattern": r"import\s+'package:sticker_view/sticker_view\.dart';",
+        "replacement": "// import 'package:sticker_view/sticker_view.dart'; // تمت الإزالة آليًا"
+    },
+    # تعليق استيراد flutter_icons
+    {
+        "pattern": r"import\s+'package:flutter_icons/flutter_icons\.dart';",
+        "replacement": "// import 'package:flutter_icons/flutter_icons.dart'; // تمت الإزالة آليًا"
+    },
+    # يمكنك إضافة المزيد حسب الحاجة...
+]
 
-def show_popup(message):
-    root = tk.Tk()
-    root.withdraw()  # لإخفاء نافذة Tkinter الأساسية
-    messagebox.showinfo("تنبيه التعديل", message)
-    root.destroy()
+def apply_updates_to_file(filepath, updates=UPDATES):
+    with open(filepath, 'r', encoding='utf-8') as f:
+        content = f.read()
+    original_content = content
+    for update in updates:
+        content = re.sub(update["pattern"], update["replacement"], content)
+    if content != original_content:
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(content)
+        print(f"✅ تم تعديل الملف: {filepath}")
 
-def main():
-    changes_file = 'changes.txt'
-    if not os.path.exists(changes_file):
-        show_popup(f"❌ ملف {changes_file} غير موجود!")
-        return
-
-    with open(changes_file, 'r', encoding='utf-8') as patch_file:
-        data = patch_file.read()
-        patches = data.split('---file:')
-        for patch in patches[1:]:
-            header, *content = patch.strip().split('\n', 1)
-            file_path = header.strip()
-            new_code = content[0] if content else ''
-            if os.path.exists(file_path):
-                status = f"📝 تم تحديث الملف:\n{file_path}"
-            else:
-                status = f"🟢 تم إنشاء الملف الجديد:\n{file_path}"
-            apply_patch(file_path, new_code)
-            show_popup(status)
-    show_popup("✅ تمت جميع التعديلات بنجاح.")
+def scan_and_apply(root_dir):
+    for root, dirs, files in os.walk(root_dir):
+        for file in files:
+            if file.endswith('.dart'):
+                filepath = os.path.join(root, file)
+                apply_updates_to_file(filepath)
 
 if __name__ == "__main__":
-    main()
+    scan_and_apply(".")
+    print("\n✨ تم فحص جميع ملفات .dart وتصحيح الاستيرادات الخاطئة.")
+

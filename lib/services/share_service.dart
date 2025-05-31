@@ -3,7 +3,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:flutter/material.dart';
-import 'package:tahania_app/services/sticker_service.dart';
+// تم تعليق هذا الاستيراد تلقائياً: import 'package:tahania_app/services/sticker_service.dart';
 
 class ShareService {
   static final ScreenshotController _screenshotController = ScreenshotController();
@@ -11,7 +11,8 @@ class ShareService {
   /// مشاركة تهنئة مع ملصق
   static Future<void> shareGreeting({
     required String greeting,
-    required Sticker sticker,
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//     required Sticker sticker,
     required String recipientName,
     required String senderName,
   }) async {
@@ -73,7 +74,8 @@ class ShareService {
   /// بناء واجهة التهنئة القابلة للمشاركة
   static Widget _buildShareableGreeting({
     required String greeting,
-    required Sticker sticker,
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//     required Sticker sticker,
     required String recipientName,
     required String senderName,
   }) {

@@ -3,7 +3,7 @@ import 'package:tahania_app/theme/app_theme.dart';
 import 'package:tahania_app/theme/app_styles.dart';
 import 'package:tahania_app/theme/app_constants.dart';
 import 'package:tahania_app/theme/app_utils.dart';
-import 'package:tahania_app/services/auto_reply_service.dart';
+// تم تعليق هذا الاستيراد تلقائياً: import 'package:tahania_app/services/auto_reply_service.dart';
 import 'package:tahania_app/services/scheduled_message_service.dart';
 import 'package:tahania_app/services/template_service.dart';
 import 'package:tahania_app/services/settings_service.dart';

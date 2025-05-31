@@ -2,18 +2,21 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 
 /// نموذج بيانات التصنيفات المتدرجة للرسائل
-class MessageCategory {
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+// class MessageCategory {
   final String name;
   final String icon;
   final Map<String, OccasionCategory> occasions;
 
-  const MessageCategory({
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//   const MessageCategory({
     required this.name,
     required this.icon,
     required this.occasions,
   });
 
-  factory MessageCategory.fromJson(String name, Map<String, dynamic> json) {
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//   factory MessageCategory.fromJson(String name, Map<String, dynamic> json) {
     final occasionsMap = <String, OccasionCategory>{};
     
     if (json['occasions'] != null) {
@@ -22,7 +25,8 @@ class MessageCategory {
       });
     }
 
-    return MessageCategory(
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//     return MessageCategory(
       name: name,
       icon: json['icon'] ?? '📝',
       occasions: occasionsMap,
@@ -56,13 +60,15 @@ class OccasionCategory {
 
 /// خدمة تحميل التصنيفات
 class MessageCategoriesService {
-  static Map<String, MessageCategory>? _categories;
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//   static Map<String, MessageCategory>? _categories;
   static bool _isLoading = false;
   static DateTime? _lastLoadTime;
   static const Duration _cacheValidity = Duration(hours: 24);
   
   /// تحميل التصنيفات من ملف JSON
-  static Future<Map<String, MessageCategory>> loadCategories() async {
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//   static Future<Map<String, MessageCategory>> loadCategories() async {
     // إذا كانت البيانات محملة مسبقًا وصالحة، أعد استخدامها
     if (_categories != null && _lastLoadTime != null) {
       final now = DateTime.now();
@@ -89,11 +95,13 @@ class MessageCategoriesService {
       final String jsonString = await rootBundle.loadString('assets/data/message_categories.json');
       final Map<String, dynamic> jsonData = json.decode(jsonString);
       
-      final categoriesMap = <String, MessageCategory>{};
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//       final categoriesMap = <String, MessageCategory>{};
       
       if (jsonData['messageTypes'] != null) {
         (jsonData['messageTypes'] as Map<String, dynamic>).forEach((key, value) {
-          categoriesMap[key] = MessageCategory.fromJson(key, value);
+// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
+//           categoriesMap[key] = MessageCategory.fromJson(key, value);
         });
       }
       
