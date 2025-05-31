@@ -1,103 +1,126 @@
-// lib/features/home/home_screen.dart
-
 import 'package:flutter/material.dart';
+import 'package:tahania_app/screens/send_greeting_screen.dart';
+import 'package:tahania_app/screens/official_messages_screen.dart';
+import 'package:tahania_app/screens/auto_reply_screen.dart';
+import 'package:tahania_app/config/theme/app_theme.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text("الرئيسية"),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: GridView.count(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            children: [
-              _buildServiceBox(
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('تهانينا'),
+        centerTitle: true,
+      ),
+      body: GridView.count(
+        padding: const EdgeInsets.all(16),
+        crossAxisCount: 2,
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        children: [
+          _buildMenuCard(
+            context,
+            title: 'إرسال تهنئة',
+            icon: Icons.send,
+            color: theme.primaryColor,
+            onTap: () {
+              Navigator.push(
                 context,
-                icon: Icons.card_giftcard,
-                label: "أرسل تهنئة",
-                onTap: () {
-                  Navigator.pushNamed(context, '/sendGreeting');
-                },
-              ),
-              _buildServiceBox(
-                context,
-                icon: Icons.auto_awesome,
-                label: "فاجئني برسالة",
-                onTap: () {
-                  Navigator.pushNamed(context, '/surpriseMessage');
-                },
-              ),
-              _buildServiceBox(
-                context,
-                icon: Icons.schedule_send,
-                label: "جدولة تهنئة",
-                onTap: () {
-                  Navigator.pushNamed(context, '/scheduleGreeting');
-                },
-              ),
-              _buildServiceBox(
-                context,
-                icon: Icons.history,
-                label: "سجل التهاني",
-                onTap: () {
-                  Navigator.pushNamed(context, '/greetingHistory');
-                },
-              ),
-              _buildServiceBox(
-                context,
-                icon: Icons.group,
-                label: "المجموعات",
-                onTap: () {
-                  Navigator.pushNamed(context, '/groups');
-                },
-              ),
-              _buildServiceBox(
-                context,
-                icon: Icons.menu_book,
-                label: "قوالب التهاني",
-                onTap: () {
-                  Navigator.pushNamed(context, '/greetingTemplates');
-                },
-              ),
-            ],
+                MaterialPageRoute(
+                  builder: (context) => const SendGreetingScreen(),
+                ),
+              );
+            },
           ),
-        ),
+          _buildMenuCard(
+            context,
+            title: 'الردود التلقائية',
+            icon: Icons.reply_all,
+            color: Colors.purple,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AutoReplyScreen(),
+                ),
+              );
+            },
+          ),
+          _buildMenuCard(
+            context,
+            title: 'الرسائل التوعوية',
+            icon: Icons.campaign,
+            color: Colors.green,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const OfficialMessagesScreen(),
+                ),
+              );
+            },
+          ),
+          _buildMenuCard(
+            context,
+            title: 'التهاني المفضلة',
+            icon: Icons.favorite,
+            color: Colors.red,
+            onTap: () {
+              // عرض التهاني المفضلة
+            },
+          ),
+          _buildMenuCard(
+            context,
+            title: 'الإعدادات',
+            icon: Icons.settings,
+            color: Colors.orange,
+            onTap: () {
+              // عرض الإعدادات
+            },
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildServiceBox(
+  Widget _buildMenuCard(
     BuildContext context, {
+    required String title,
     required IconData icon,
-    required String label,
+    required Color color,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.teal[50],
-          borderRadius: BorderRadius.circular(16),
-        ),
-        padding: const EdgeInsets.all(16),
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 36, color: Colors.teal),
-            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                size: 32,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: 16),
             Text(
-              label,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              title,
+              style: Theme.of(context).textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
           ],
@@ -105,4 +128,4 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
-}
+} 
