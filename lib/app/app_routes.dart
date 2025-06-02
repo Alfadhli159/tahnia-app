@@ -5,7 +5,11 @@ import 'package:tahania_app/features/auth/login_screen.dart';
 import 'package:tahania_app/features/auth/register_screen.dart';
 import 'package:tahania_app/features/auth/privacy_policy_screen.dart';
 import 'package:tahania_app/features/home/home_screen.dart';
-// أضف باقي الشاشات حسب الحاجة
+import 'package:tahania_app/features/greetings/presentation/screens/send_greeting_screen.dart';
+import 'package:tahania_app/features/auto_reply/presentation/screens/auto_reply_screen.dart';
+import 'package:tahania_app/features/more/screens/official_messages_screen.dart';
+import 'package:tahania_app/features/home/favorites_screen.dart';
+import 'package:tahania_app/features/home/settings_screen.dart';
 
 class AppRoutes {
   static const splash = '/';
@@ -14,6 +18,11 @@ class AppRoutes {
   static const login = '/login';
   static const home = '/home';
   static const privacy = '/privacy';
+  static const sendGreeting = '/send';
+  static const autoReply = '/autoreply';
+  static const officialMessages = '/official';
+  static const favorites = '/favorites';
+  static const settings = '/settings';
 
   static Map<String, WidgetBuilder> get routes => {
         splash: (context) => const SplashScreen(),
@@ -22,6 +31,10 @@ class AppRoutes {
         login: (context) => const LoginScreen(),
         home: (context) => const HomeScreen(),
         privacy: (context) => const PrivacyPolicyScreen(),
-        // أضف باقي الشاشات هنا...
+        sendGreeting: (context) => const SendGreetingScreen(),
+        autoReply: (context) => const AutoReplyScreen(),
+        officialMessages: (context) => const OfficialMessagesScreen(),
+        favorites: (context) => const FavoritesScreen(),
+        settings: (context) => const SettingsScreen(),
       };
 }
