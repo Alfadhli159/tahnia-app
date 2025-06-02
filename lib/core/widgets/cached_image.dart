@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/services.dart';
-import '../utils/cache_manager.dart';
 
 class CachedImage extends StatelessWidget {
   final String imageUrl;
@@ -32,11 +30,13 @@ class CachedImage extends StatelessWidget {
       width: width,
       height: height,
       fit: fit,
-      placeholder: (context, url) => placeholder ?? const CircularProgressIndicator(),
-      errorWidget: (context, url, error) => errorWidget ?? const Icon(Icons.error),
-      memCacheWidth: (width ?? MediaQuery.of(context).size.width) * 2,
-      memCacheHeight: (height ?? MediaQuery.of(context).size.height) * 2,
-      cacheManager: CacheManager(),
+      placeholder: (context, url) =>
+          placeholder ?? const CircularProgressIndicator(),
+      errorWidget: (context, url, error) =>
+          errorWidget ?? const Icon(Icons.error),
+      memCacheWidth: ((width ?? MediaQuery.of(context).size.width) * 2).toInt(),
+      memCacheHeight:
+          ((height ?? MediaQuery.of(context).size.height) * 2).toInt(),
     );
   }
 }

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
-import '../constants/app_constants.dart';
+import 'dart:convert';
+import 'package:path_provider/path_provider.dart';
 import 'error_handler.dart';
 
 class AdvancedCache {
@@ -15,7 +15,9 @@ class AdvancedCache {
   final Duration _maxAge = const Duration(days: 7);
   final int _maxCacheSize = 100 * 1024 * 1024; // 100MB
 
-  Future<void> put(String key, dynamic value, {
+  Future<void> put(
+    String key,
+    dynamic value, {
     Duration? duration,
     int? size,
   }) async {
@@ -67,10 +69,10 @@ class AdvancedCache {
 
   Future<void> _cleanupCache() async {
     final now = DateTime.now();
-    
-    _cacheTimes.entries.removeWhere((entry) {
-      if (now.difference(entry.value) > _maxAge) {
-        remove(entry.key);
+
+    _cacheTimes.removeWhere((key, value) {
+      if (now.difference(value) > _maxAge) {
+        remove(key);
         return true;
       }
       return false;
@@ -87,6 +89,7 @@ class AdvancedCache {
     }
   }
 
+  // ignore: prefer_expression_function_bodies
   int _calculateCacheSize() {
     return _cacheSizes.values.fold(0, (sum, size) => sum + size);
   }
@@ -95,13 +98,13 @@ class AdvancedCache {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/cache.json');
-      
+
       final content = json.encode({
         'cache': _cache,
         'times': _cacheTimes,
         'sizes': _cacheSizes,
       });
-      
+
       await file.writeAsString(content);
     } catch (e) {
       ErrorHandler().handleError(e);
@@ -112,15 +115,23 @@ class AdvancedCache {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/cache.json');
-      
+
       if (!await file.exists()) return;
-      
+
       final content = await file.readAsString();
       final data = json.decode(content) as Map<String, dynamic>;
-      
+
       _cache.addAll(data['cache'] as Map<String, dynamic>);
-      _cacheTimes.addAll(data['times'] as Map<String, dynamic>);
-      _cacheSizes.addAll(data['sizes'] as Map<String, dynamic>);
+      final timesMap =
+          (data['times'] as Map<String, dynamic>).map<String, DateTime>(
+        (key, value) => MapEntry(key, DateTime.parse(value as String)),
+      );
+      _cacheTimes.addAll(timesMap);
+      _cacheSizes.addAll(
+        (data['sizes'] as Map<String, dynamic>).map<String, int>(
+          (key, value) => MapEntry(key, value as int),
+        ),
+      );
     } catch (e) {
       ErrorHandler().handleError(e);
     }

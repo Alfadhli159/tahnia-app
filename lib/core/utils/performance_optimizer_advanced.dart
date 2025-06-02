@@ -7,12 +7,14 @@ import 'memory_manager_advanced.dart';
 import 'graphics_optimizer_advanced.dart';
 
 class PerformanceOptimizerAdvanced {
-  static final PerformanceOptimizerAdvanced _instance = PerformanceOptimizerAdvanced._internal();
+  static final PerformanceOptimizerAdvanced _instance =
+      PerformanceOptimizerAdvanced._internal();
   factory PerformanceOptimizerAdvanced() => _instance;
   PerformanceOptimizerAdvanced._internal();
 
   final MemoryManagerAdvanced _memoryManager = MemoryManagerAdvanced();
-  final GraphicsOptimizerAdvanced _graphicsOptimizer = GraphicsOptimizerAdvanced();
+  final GraphicsOptimizerAdvanced _graphicsOptimizer =
+      GraphicsOptimizerAdvanced();
   final ErrorHandler _errorHandler = ErrorHandler();
 
   Widget optimizeWidget({
@@ -21,12 +23,15 @@ class PerformanceOptimizerAdvanced {
     bool enableRepaintBoundary = true,
   }) {
     try {
-      return PerformanceUtils.buildWithPerformance(
-        child: enableRepaintBoundary
-            ? RepaintBoundary(child: child)
-            : child,
-        maintainState: maintainState,
-      );
+      Widget optimizedWidget =
+          enableRepaintBoundary ? RepaintBoundary(child: child) : child;
+
+      return maintainState
+          ? optimizedWidget
+          : KeepAlive(
+              keepAlive: false,
+              child: optimizedWidget,
+            );
     } catch (e) {
       _errorHandler.handleError(e);
       return child;
@@ -67,15 +72,18 @@ class PerformanceOptimizerAdvanced {
     Widget? separator,
   }) {
     try {
-      return OptimizedListView(
-        children: children,
+      return SizedBox(
         width: width,
         height: height,
-        padding: padding,
-        physics: physics,
-        shrinkWrap: shrinkWrap,
-        scrollDirection: scrollDirection,
-        separator: separator,
+        child: ListView.separated(
+          padding: padding ?? EdgeInsets.zero,
+          physics: physics ?? const BouncingScrollPhysics(),
+          shrinkWrap: shrinkWrap,
+          scrollDirection: scrollDirection,
+          itemCount: children.length,
+          itemBuilder: (context, index) => children[index],
+          separatorBuilder: (context, index) => separator ?? const SizedBox(),
+        ),
       );
     } catch (e) {
       _errorHandler.handleError(e);

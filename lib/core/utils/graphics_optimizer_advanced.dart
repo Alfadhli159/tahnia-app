@@ -1,10 +1,13 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../constants/app_constants.dart';
 import 'error_handler.dart';
 
 class GraphicsOptimizerAdvanced {
-  static final GraphicsOptimizerAdvanced _instance = GraphicsOptimizerAdvanced._internal();
+  static final GraphicsOptimizerAdvanced _instance =
+      GraphicsOptimizerAdvanced._internal();
   factory GraphicsOptimizerAdvanced() => _instance;
   GraphicsOptimizerAdvanced._internal();
 
@@ -52,28 +55,30 @@ class GraphicsOptimizerAdvanced {
     Widget? errorWidget,
   }) {
     return RepaintBoundary(
-      child: CachedImage(
+      child: CachedNetworkImage(
         imageUrl: imageUrl,
         width: width,
         height: height,
         fit: fit,
-        placeholder: placeholder,
-        errorWidget: errorWidget,
+        placeholder: (context, url) =>
+            placeholder ?? const CircularProgressIndicator(),
+        errorWidget: (context, url, error) =>
+            errorWidget ?? const Icon(Icons.error),
       ),
     );
   }
 
   dynamic _getCachedImage(String imageUrl) {
     if (!_cachedImages.containsKey(imageUrl)) return null;
-    
+
     final cacheTime = _imageAccessTimes[imageUrl];
     if (cacheTime == null) return null;
-    
+
     if (DateTime.now().difference(cacheTime) > _imageCacheDuration) {
       _removeCachedImage(imageUrl);
       return null;
     }
-    
+
     _imageAccessTimes[imageUrl] = DateTime.now();
     return _cachedImages[imageUrl];
   }
@@ -91,14 +96,14 @@ class GraphicsOptimizerAdvanced {
 
   void _cleanupImages() {
     final now = DateTime.now();
-    
-    _imageAccessTimes.entries.removeWhere((entry) {
-      if (now.difference(entry.value) > _imageCacheDuration) {
-        _removeCachedImage(entry.key);
-        return true;
-      }
-      return false;
-    });
+
+    final entriesToRemove = _imageAccessTimes.entries.where((entry) {
+      return now.difference(entry.value) > _imageCacheDuration;
+    }).toList();
+
+    for (var entry in entriesToRemove) {
+      _removeCachedImage(entry.key);
+    }
   }
 
   void startImageMonitoring() {

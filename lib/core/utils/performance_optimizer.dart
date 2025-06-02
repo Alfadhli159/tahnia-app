@@ -1,34 +1,36 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../constants/app_constants.dart';
 import 'error_handler.dart';
-import 'memory_manager.dart';
-import 'cache_manager.dart';
 
 class PerformanceOptimizer {
-  static final PerformanceOptimizer _instance = PerformanceOptimizer._internal();
+  static final PerformanceOptimizer _instance =
+      PerformanceOptimizer._internal();
   factory PerformanceOptimizer() => _instance;
   PerformanceOptimizer._internal();
 
-  final MemoryManager _memoryManager = MemoryManager();
   final ErrorHandler _errorHandler = ErrorHandler();
-  final CacheManager _cacheManager = CacheManager();
+  final Map<String, Widget> _imageCache = {};
 
-  void optimizeWidget({
+  Widget optimizeWidget({
     required Widget child,
     bool maintainState = true,
     bool enableRepaintBoundary = true,
   }) {
-    return PerformanceUtils.buildWithPerformance(
-      child: RepaintBoundary(
-        child: child,
-      ),
-      maintainState: maintainState,
-    );
+    Widget optimizedWidget =
+        enableRepaintBoundary ? RepaintBoundary(child: child) : child;
+
+    return maintainState
+        ? optimizedWidget
+        : KeepAlive(
+            keepAlive: false,
+            child: optimizedWidget,
+          );
   }
 
-  void optimizeImage({
+  Widget optimizeImage({
     required String imageUrl,
     double? width,
     double? height,
@@ -37,21 +39,22 @@ class PerformanceOptimizer {
     Widget? errorWidget,
   }) {
     try {
-      final cachedImage = _cacheManager.getImage(imageUrl);
-      if (cachedImage != null) {
-        return cachedImage;
+      if (_imageCache.containsKey(imageUrl)) {
+        return _imageCache[imageUrl]!;
       }
 
-      final image = CachedImage(
+      final image = CachedNetworkImage(
         imageUrl: imageUrl,
         width: width,
         height: height,
         fit: fit,
-        placeholder: placeholder,
-        errorWidget: errorWidget,
+        placeholder: (context, url) =>
+            placeholder ?? const CircularProgressIndicator(),
+        errorWidget: (context, url, error) =>
+            errorWidget ?? const Icon(Icons.error),
       );
 
-      _cacheManager.setImage(imageUrl, image);
+      _imageCache[imageUrl] = image;
       return image;
     } catch (e) {
       _errorHandler.handleError(e);
@@ -59,7 +62,7 @@ class PerformanceOptimizer {
     }
   }
 
-  void optimizeListView({
+  Widget optimizeListView({
     required List<Widget> children,
     double? width,
     double? height,
@@ -69,26 +72,29 @@ class PerformanceOptimizer {
     Axis scrollDirection = Axis.vertical,
     Widget? separator,
   }) {
-    return OptimizedListView(
-      children: children,
+    return SizedBox(
       width: width,
       height: height,
-      padding: padding,
-      physics: physics,
-      shrinkWrap: shrinkWrap,
-      scrollDirection: scrollDirection,
-      separator: separator,
+      child: ListView.separated(
+        padding: padding ?? EdgeInsets.zero,
+        physics: physics ?? const BouncingScrollPhysics(),
+        shrinkWrap: shrinkWrap,
+        scrollDirection: scrollDirection,
+        itemCount: children.length,
+        itemBuilder: (context, index) => children[index],
+        separatorBuilder: (context, index) => separator ?? const SizedBox(),
+      ),
     );
   }
 
   void optimizeMemoryUsage() {
-    _memoryManager._cleanupMemory();
-    _cacheManager.clearExpired();
-    _cacheManager.clearExpiredImages();
+    // Clear image cache if it gets too large
+    if (_imageCache.length > AppConstants.maxListSize) {
+      _imageCache.clear();
+    }
   }
 
   void dispose() {
-    _memoryManager.dispose();
-    _cacheManager.dispose();
+    _imageCache.clear();
   }
 }

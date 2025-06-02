@@ -1,10 +1,15 @@
+import 'package:flutter/animation.dart';
+import 'package:flutter/material.dart';
+
 class AppConstants {
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
   // App Version
   static const String version = '1.0.0';
 
   // API Endpoints
   static const String baseUrl = 'https://api.example.com';
-  static const String timeoutDuration = 30;
+  static const int timeoutDuration = 30;
 
   // Cache Settings
   static const int imageCacheSize = 100; // MB
@@ -32,6 +37,7 @@ class AppConstants {
   static const int maxLocalStorageSize = 50; // MB
 
   // Error Handling
-  static const String defaultErrorMessage = 'حدث خطأ ما. يرجى المحاولة مرة أخرى.';
+  static const String defaultErrorMessage =
+      'حدث خطأ ما. يرجى المحاولة مرة أخرى.';
   static const int maxErrorRetries = 3;
 }

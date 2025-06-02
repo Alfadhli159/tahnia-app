@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "858947494660",
+    "project_id": "tahnia-app",
+    "storage_bucket": "tahnia-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:858947494660:android:8c22a635d58ae58d722651",
+        "android_client_info": {
+          "package_name": "com.example.tahania_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "858947494660-emo6arukf61ndlrqk41kehvlp70etc28.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.tahania_app",
+            "certificate_hash": "1168c90a5181a97ffbf6e3f15775cf5837a9d231"
+          }
+        },
+        {
+          "client_id": "858947494660-ts9ppc2ucodjti2nunmjvn89rndgtbo3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAoAQ9pmbkQiTT4bW3pU0gECkyJuZuLEhk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "858947494660-ts9ppc2ucodjti2nunmjvn89rndgtbo3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

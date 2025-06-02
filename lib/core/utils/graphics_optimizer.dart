@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../constants/app_constants.dart';
 
 class GraphicsOptimizer {
@@ -9,12 +10,23 @@ class GraphicsOptimizer {
     bool enableRepaintBoundary = true,
     bool enablePerformanceOverlay = false,
   }) {
-    return PerformanceUtils.buildWithPerformance(
-      child: RepaintBoundary(
-        child: child,
-      ),
-      maintainState: maintainState,
-    );
+    Widget optimizedWidget = RepaintBoundary(child: child);
+
+    if (enablePerformanceOverlay) {
+      optimizedWidget = Stack(
+        children: [
+          optimizedWidget,
+          const PerformanceOverlay(),
+        ],
+      );
+    }
+
+    return maintainState
+        ? optimizedWidget
+        : KeepAlive(
+            keepAlive: false,
+            child: optimizedWidget,
+          );
   }
 
   static Widget optimizeImage({
@@ -25,13 +37,15 @@ class GraphicsOptimizer {
     Widget? placeholder,
     Widget? errorWidget,
   }) {
-    return CachedImage(
+    return CachedNetworkImage(
       imageUrl: imageUrl,
       width: width,
       height: height,
       fit: fit,
-      placeholder: placeholder,
-      errorWidget: errorWidget,
+      placeholder: (context, url) =>
+          placeholder ?? const CircularProgressIndicator(),
+      errorWidget: (context, url, error) =>
+          errorWidget ?? const Icon(Icons.error),
     );
   }
 
@@ -45,15 +59,18 @@ class GraphicsOptimizer {
     Axis scrollDirection = Axis.vertical,
     Widget? separator,
   }) {
-    return OptimizedListView(
-      children: children,
+    return SizedBox(
       width: width,
       height: height,
-      padding: padding,
-      physics: physics,
-      shrinkWrap: shrinkWrap,
-      scrollDirection: scrollDirection,
-      separator: separator,
+      child: ListView.separated(
+        padding: padding ?? EdgeInsets.zero,
+        physics: physics ?? const BouncingScrollPhysics(),
+        shrinkWrap: shrinkWrap,
+        scrollDirection: scrollDirection,
+        itemCount: children.length,
+        itemBuilder: (context, index) => children[index],
+        separatorBuilder: (context, index) => separator ?? const SizedBox(),
+      ),
     );
   }
 

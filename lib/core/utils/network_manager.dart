@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -13,7 +14,8 @@ class NetworkManager {
   final Map<String, DateTime> _requestTimes = {};
   final Duration _minRequestInterval = const Duration(milliseconds: 500);
 
-  Future<http.Response> get(String url, {
+  Future<http.Response> get(
+    String url, {
     Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
   }) async {
@@ -26,10 +28,12 @@ class NetworkManager {
         }
       }
 
-      final response = await http.get(
-        Uri.parse(url).replace(queryParameters: queryParameters),
-        headers: headers,
-      ).timeout(const Duration(seconds: AppConstants.timeoutDuration));
+      final response = await http
+          .get(
+            Uri.parse(url).replace(queryParameters: queryParameters),
+            headers: headers,
+          )
+          .timeout(const Duration(seconds: AppConstants.timeoutDuration));
 
       _requestTimes[url] = DateTime.now();
       return response;
@@ -39,18 +43,21 @@ class NetworkManager {
     }
   }
 
-  Future<http.Response> post(String url, {
+  Future<http.Response> post(
+    String url, {
     Map<String, String>? headers,
     Map<String, dynamic>? body,
     Encoding? encoding,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: headers,
-        body: body,
-        encoding: encoding,
-      ).timeout(const Duration(seconds: AppConstants.timeoutDuration));
+      final response = await http
+          .post(
+            Uri.parse(url),
+            headers: headers,
+            body: body,
+            encoding: encoding,
+          )
+          .timeout(const Duration(seconds: AppConstants.timeoutDuration));
 
       _requestTimes[url] = DateTime.now();
       return response;

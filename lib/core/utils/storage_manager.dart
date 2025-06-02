@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import '../constants/app_constants.dart';
@@ -71,7 +72,8 @@ class StorageManager {
       if (data.isEmpty) return;
 
       final backupPath = await _localPath;
-      final backupFile = File('$backupPath/${AppConstants.localStorageKey}_backup.json');
+      final backupFile =
+          File('$backupPath/${AppConstants.localStorageKey}_backup.json');
       await backupFile.writeAsString(json.encode(data));
     } catch (e) {
       ErrorHandler().handleError(e);

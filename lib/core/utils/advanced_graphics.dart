@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../constants/app_constants.dart';
 import 'error_handler.dart';
 
@@ -14,21 +15,22 @@ class AdvancedGraphics {
     Widget? errorWidget,
   }) {
     return RepaintBoundary(
-      child: CachedImage(
+      child: CachedNetworkImage(
         imageUrl: imageUrl,
         width: width,
         height: height,
         fit: fit,
-        placeholder: placeholder,
-        errorWidget: errorWidget,
+        placeholder: placeholder != null ? (context, url) => placeholder : null,
+        errorWidget:
+            errorWidget != null ? (context, url, error) => errorWidget : null,
       ),
     );
   }
 
   static Widget buildAnimatedContainer({
     required Widget child,
-    Duration duration = AppConstants.defaultAnimationDuration,
-    Curve curve = AppConstants.defaultAnimationCurve,
+    Duration duration = const Duration(milliseconds: 300),
+    Curve curve = Curves.easeInOut,
   }) {
     return AnimatedContainer(
       duration: duration,
@@ -39,8 +41,8 @@ class AdvancedGraphics {
 
   static Widget buildAnimatedList({
     required List<Widget> children,
-    Duration duration = AppConstants.defaultAnimationDuration,
-    Curve curve = AppConstants.defaultAnimationCurve,
+    Duration duration = const Duration(milliseconds: 300),
+    Curve curve = Curves.easeInOut,
   }) {
     return AnimatedList(
       initialItemCount: children.length,
@@ -67,10 +69,15 @@ class AdvancedGraphics {
     required Widget child,
     bool showPerformanceOverlay = false,
   }) {
-    return PerformanceOverlay(
-      enabled: showPerformanceOverlay,
-      child: child,
-    );
+    if (showPerformanceOverlay) {
+      return Stack(
+        children: [
+          child,
+          const PerformanceOverlay(),
+        ],
+      );
+    }
+    return child;
   }
 
   static Widget buildRepaintBoundary({

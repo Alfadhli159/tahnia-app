@@ -19,11 +19,12 @@ class LazyLoading {
     Widget? loadingWidget,
     Widget? errorWidget,
   }) {
-    return FutureBuilder(
+    return FutureBuilder<bool>(
       future: _loadData(key),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return loadingWidget ?? const Center(child: CircularProgressIndicator());
+          return loadingWidget ??
+              const Center(child: CircularProgressIndicator());
         }
 
         if (snapshot.hasError) {
@@ -38,21 +39,21 @@ class LazyLoading {
     );
   }
 
-  Future<void> _loadData(String key) async {
-    if (_loadingStates[key] == true) return;
+  Future<bool> _loadData(String key) async {
+    if (_loadingStates[key] == true) return true;
 
     _loadingStates[key] = true;
     await Future.delayed(_loadingDelay);
-    
+
     try {
       // Simulate data loading
       await Future.delayed(const Duration(seconds: 1));
+      _loadingStates[key] = false;
+      return true;
     } catch (e) {
       _loadingStates[key] = false;
       rethrow;
     }
-
-    _loadingStates[key] = false;
   }
 
   void cancelLoading(String key) {

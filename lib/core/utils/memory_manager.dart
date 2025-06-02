@@ -19,7 +19,7 @@ class MemoryManager {
 
   dynamic getCachedValue(String key) {
     if (!_memoryCache.containsKey(key)) return null;
-    
+
     _lastAccessTimes[key] = DateTime.now();
     return _memoryCache[key];
   }
@@ -40,14 +40,15 @@ class MemoryManager {
 
   void _cleanupMemory() {
     final now = DateTime.now();
-    
-    _lastAccessTimes.entries.removeWhere((entry) {
-      if (now.difference(entry.value) > _maxIdleTime) {
-        removeValue(entry.key);
-        return true;
-      }
-      return false;
-    });
+
+    final keysToRemove = _lastAccessTimes.entries
+        .where((entry) => now.difference(entry.value) > _maxIdleTime)
+        .map((entry) => entry.key)
+        .toList();
+
+    for (var key in keysToRemove) {
+      removeValue(key);
+    }
   }
 
   void dispose() {

@@ -5,11 +5,12 @@ import '../constants/app_constants.dart';
 import 'error_handler.dart';
 
 class MemoryManagerAdvanced {
-  static final MemoryManagerAdvanced _instance = MemoryManagerAdvanced._internal();
+  static final MemoryManagerAdvanced _instance =
+      MemoryManagerAdvanced._internal();
   factory MemoryManagerAdvanced() => _instance;
   MemoryManagerAdvanced._internal();
 
-  final LruMap<String, dynamic> _memoryCache = LruMap(
+  final _LruCache<String, dynamic> _memoryCache = _LruCache<String, dynamic>(
     maxSize: 1000,
     onEviction: (key, value) {
       debugPrint('Evicted: $key');
@@ -35,7 +36,6 @@ class MemoryManagerAdvanced {
   }
 
   dynamic getCachedValue(String key) {
-    if (!_memoryCache.containsKey(key)) return null;
     return _memoryCache[key];
   }
 
@@ -54,9 +54,9 @@ class MemoryManagerAdvanced {
   }
 
   void _cleanupMemory() {
-    while (_calculateMemorySize() > _maxMemorySize) {
-      final firstKey = _memoryCache.keys.first;
-      removeValue(firstKey);
+    while (_calculateMemorySize() > _maxMemorySize && _memoryCache.isNotEmpty) {
+      final oldestKey = _memoryCache.keys.first;
+      removeValue(oldestKey);
     }
   }
 
@@ -68,61 +68,140 @@ class MemoryManagerAdvanced {
   }
 
   Map<String, dynamic> _getMemoryInfo() {
-    final memoryInfo = {
+    return {
       'total': _calculateMemorySize(),
       'items': _memoryCache.length,
       'max': _maxMemorySize,
     };
-    return memoryInfo;
   }
 
   void dispose() {
     clearCache();
-    _memoryCache.clear();
-    _memorySizes.clear();
   }
 }
 
-class LruMap<K, V> extends LinkedHashMap<K, V> {
+class _LruCache<K, V> implements Map<K, V> {
   final int maxSize;
   final void Function(K key, V value)? onEviction;
+  final LinkedHashMap<K, V> _cache = LinkedHashMap<K, V>();
 
-  LruMap({
+  _LruCache({
     required this.maxSize,
     this.onEviction,
-    bool equals(K key1, K key2) = identical,
-    int hashCode(K key) = Object.hashCode,
-    bool isValidKey(dynamic object) = _isValidKey,
-  }) : super(
-          equals: equals,
-          hashCode: hashCode,
-          isValidKey: isValidKey,
-        );
+  });
 
   @override
   V? operator [](Object? key) {
-    final value = super[key];
-    if (value != null) {
-      // Move accessed item to the end
-      remove(key);
-      this[key] = value;
+    final value = _cache[key];
+    if (value != null && key is K) {
+      // Move to end (most recently used)
+      _cache.remove(key);
+      _cache[key] = value;
     }
     return value;
   }
 
   @override
   void operator []=(K key, V value) {
-    if (length >= maxSize) {
-      final firstKey = first;
-      final firstValue = remove(firstKey);
-      if (firstValue != null && onEviction != null) {
-        onEviction!(firstKey, firstValue);
-      }
+    if (_cache.length >= maxSize && !_cache.containsKey(key)) {
+      final oldestEntry = _cache.entries.first;
+      _cache.remove(oldestEntry.key);
+      onEviction?.call(oldestEntry.key, oldestEntry.value);
     }
-    super[key] = value;
+    _cache[key] = value;
   }
 
-  static bool _isValidKey(dynamic object) {
-    return object != null;
+  @override
+  void clear() => _cache.clear();
+
+  @override
+  bool containsKey(Object? key) => _cache.containsKey(key);
+
+  @override
+  bool containsValue(Object? value) => _cache.containsValue(value);
+
+  @override
+  void forEach(void Function(K key, V value) action) => _cache.forEach(action);
+
+  @override
+  bool get isEmpty => _cache.isEmpty;
+
+  @override
+  bool get isNotEmpty => _cache.isNotEmpty;
+
+  @override
+  Iterable<K> get keys => _cache.keys;
+
+  @override
+  int get length => _cache.length;
+
+  @override
+  V? remove(Object? key) => _cache.remove(key);
+
+  @override
+  Iterable<V> get values => _cache.values;
+
+  @override
+  void addAll(Map<K, V> other) =>
+      other.forEach((key, value) => this[key] = value);
+
+  @override
+  void addEntries(Iterable<MapEntry<K, V>> entries) {
+    for (final entry in entries) {
+      this[entry.key] = entry.value;
+    }
+  }
+
+  @override
+  Map<RK, RV> cast<RK, RV>() => _cache.cast<RK, RV>();
+
+  @override
+  Iterable<MapEntry<K, V>> get entries => _cache.entries;
+
+  @override
+  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> Function(K key, V value) convert) {
+    return _cache.map(convert);
+  }
+
+  @override
+  V putIfAbsent(K key, V Function() ifAbsent) {
+    if (containsKey(key)) {
+      return this[key]!;
+    }
+    final value = ifAbsent();
+    this[key] = value;
+    return value;
+  }
+
+  @override
+  V update(K key, V Function(V value) update, {V Function()? ifAbsent}) {
+    if (containsKey(key)) {
+      final value = update(this[key]!);
+      this[key] = value;
+      return value;
+    }
+    if (ifAbsent != null) {
+      final value = ifAbsent();
+      this[key] = value;
+      return value;
+    }
+    throw ArgumentError.notNull('key');
+  }
+
+  @override
+  void updateAll(V Function(K key, V value) update) {
+    final entries = this.entries.toList();
+    for (final entry in entries) {
+      this[entry.key] = update(entry.key, entry.value);
+    }
+  }
+
+  @override
+  void removeWhere(bool Function(K key, V value) test) {
+    final entriesToRemove =
+        entries.where((entry) => test(entry.key, entry.value)).toList();
+    for (final entry in entriesToRemove) {
+      remove(entry.key);
+    }
   }
 }
