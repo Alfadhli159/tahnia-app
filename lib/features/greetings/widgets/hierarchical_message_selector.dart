@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:tahania_app/core/models/message_category.dart';
-import 'package:tahania_app/services/localization/app_localizations.dart';
 
 /// Widget لاختيار الرسالة بنظام التصنيف المتدرج
 class HierarchicalMessageSelector extends StatefulWidget {
@@ -26,19 +25,19 @@ class HierarchicalMessageSelector extends StatefulWidget {
   });
 
   @override
-  State<HierarchicalMessageSelector> createState() => _HierarchicalMessageSelectorState();
+  State<HierarchicalMessageSelector> createState() =>
+      _HierarchicalMessageSelectorState();
 }
 
-class _HierarchicalMessageSelectorState extends State<HierarchicalMessageSelector>
+class _HierarchicalMessageSelectorState
+    extends State<HierarchicalMessageSelector>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
-//   Map<String, MessageCategory> _categories = {};
+  List<MessageCategory> _categories = [];
   List<String> _messageTypes = [];
   List<String> _occasions = [];
   List<String> _purposes = [];
   bool _isLoading = true;
-  bool _categoriesLoaded = false;
-  
+
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -51,7 +50,7 @@ class _HierarchicalMessageSelectorState extends State<HierarchicalMessageSelecto
   void initState() {
     super.initState();
     _initializeAnimations();
-    
+
     // تأخير تحميل التصنيفات لتحسين وقت البدء
     Future.microtask(() => _loadCategories());
   }
@@ -61,7 +60,7 @@ class _HierarchicalMessageSelectorState extends State<HierarchicalMessageSelecto
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -69,7 +68,7 @@ class _HierarchicalMessageSelectorState extends State<HierarchicalMessageSelecto
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
-    
+
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
@@ -81,40 +80,28 @@ class _HierarchicalMessageSelectorState extends State<HierarchicalMessageSelecto
 
   Future<void> _loadCategories() async {
     try {
-      final categories = await MessageCategoriesService.loadCategories();
+      await MessageCategoriesService.initialize();
+      final categories = MessageCategoriesService.getAllCategories();
       setState(() {
         _categories = categories;
-        _messageTypes = categories.keys.toList();
+        _messageTypes =
+            categories.map((c) => c.getLocalizedName('ar')).toList();
         _isLoading = false;
       });
       _animationController.forward();
-      
+
       // تحديث القوائم المعتمدة على الاختيار الحالي
       if (widget.selectedMessageType != null) {
         await _updateOccasions(widget.selectedMessageType!);
         if (widget.selectedOccasion != null) {
-          await _updatePurposes(widget.selectedMessageType!, widget.selectedOccasion!);
+          await _updatePurposes(
+              widget.selectedMessageType!, widget.selectedOccasion!);
         }
       }
     } catch (e) {
       setState(() => _isLoading = false);
       _showError('حدث خطأ في تحميل التصنيفات');
     }
-  }
-
-  Future<void> _updateOccasions(String messageType) async {
-    final occasions = await MessageCategoriesService.getOccasionsForType(messageType);
-    setState(() {
-      _occasions = occasions;
-      _purposes = []; // إعادة تعيين الأغراض
-    });
-  }
-
-  Future<void> _updatePurposes(String messageType, String occasion) async {
-    final purposes = await MessageCategoriesService.getPurposesForOccasion(messageType, occasion);
-    setState(() {
-      _purposes = purposes;
-    });
   }
 
   void _showError(String message) {
@@ -128,15 +115,41 @@ class _HierarchicalMessageSelectorState extends State<HierarchicalMessageSelecto
     );
   }
 
-  bool get _canGenerate {
-    return widget.selectedMessageType != null &&
-           widget.selectedOccasion != null &&
-           widget.selectedPurpose != null &&
-           !widget.isGenerating;
+  Future<void> _updateOccasions(String messageType) async {
+    // البحث عن الفئة المطابقة
+    final category = _categories.firstWhere(
+      (c) => c.getLocalizedName('ar') == messageType,
+      orElse: () => _categories.first,
+    );
+
+    final occasions = category.subCategories
+        .map((sub) => sub.getLocalizedName('ar'))
+        .toList();
+    setState(() {
+      _occasions = occasions;
+      _purposes = []; // إعادة تعيين الأغراض
+    });
+  }
+
+  Future<void> _updatePurposes(String messageType, String occasion) async {
+    // استخدام قائمة افتراضية للأغراض
+    final purposes = [
+      'تهنئة',
+      'دعاء',
+      'امتنان',
+      'فخر',
+      'إشادة',
+      'تشجيع',
+      'دعم'
+    ];
+    setState(() {
+      _purposes = purposes;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Call super.build for AutomaticKeepAliveClientMixin
     if (_isLoading) {
       return const Center(
         child: Padding(
@@ -156,11 +169,11 @@ class _HierarchicalMessageSelectorState extends State<HierarchicalMessageSelecto
             // عنوان القسم
             _buildSectionHeader(),
             const SizedBox(height: 16),
-            
+
             // المستوى الأول: نوع الرسالة
             _buildMessageTypeSelector(),
             const SizedBox(height: 12),
-            
+
             // المستوى الثاني: تصنيف المناسبة
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
@@ -174,7 +187,7 @@ class _HierarchicalMessageSelectorState extends State<HierarchicalMessageSelecto
                     )
                   : const SizedBox.shrink(),
             ),
-            
+
             // المستوى الثالث: غرض الرسالة
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
@@ -188,7 +201,7 @@ class _HierarchicalMessageSelectorState extends State<HierarchicalMessageSelecto
                     )
                   : const SizedBox.shrink(),
             ),
-            
+
             // تم إزالة زر توليد الرسالة من هنا ونقله إلى قسم الرسالة
           ],
         ),
@@ -202,15 +215,15 @@ class _HierarchicalMessageSelectorState extends State<HierarchicalMessageSelecto
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Theme.of(context).primaryColor.withOpacity(0.1),
-            Theme.of(context).primaryColor.withOpacity(0.05),
+            Theme.of(context).primaryColor.withValues(alpha: 0.1),
+            Theme.of(context).primaryColor.withValues(alpha: 0.05),
           ],
           begin: Alignment.topRight,
           end: Alignment.bottomLeft,
         ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).primaryColor.withOpacity(0.2),
+          color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -318,21 +331,21 @@ class _HierarchicalMessageSelectorState extends State<HierarchicalMessageSelecto
     required int level,
   }) {
     final isEnabled = items.isNotEmpty;
-    
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: isEnabled 
-              ? Theme.of(context).primaryColor.withOpacity(0.3)
+          color: isEnabled
+              ? Theme.of(context).primaryColor.withValues(alpha: 0.3)
               : Colors.grey[300]!,
           width: isEnabled ? 2 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 4,
             offset: const Offset(0, 2),
@@ -350,15 +363,18 @@ class _HierarchicalMessageSelectorState extends State<HierarchicalMessageSelecto
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: isEnabled ? Theme.of(context).primaryColor : Colors.grey,
+                    color: isEnabled
+                        ? Theme.of(context).primaryColor
+                        : Colors.grey,
                   ),
                 ),
               ),
               if (level > 1)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                    color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -395,11 +411,12 @@ class _HierarchicalMessageSelectorState extends State<HierarchicalMessageSelecto
                 value: item,
                 child: Container(
                   constraints: const BoxConstraints(maxWidth: 200),
-                  child: itemBuilder?.call(item) ?? Text(
-                    item,
-                    style: const TextStyle(fontSize: 13),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  child: itemBuilder?.call(item) ??
+                      Text(
+                        item,
+                        style: const TextStyle(fontSize: 13),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                 ),
               );
             }).toList(),
@@ -424,7 +441,8 @@ class _HierarchicalMessageSelectorState extends State<HierarchicalMessageSelecto
                   width: 2,
                 ),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               filled: true,
               fillColor: isEnabled ? Colors.white : Colors.grey[50],
             ),
@@ -441,7 +459,20 @@ class _HierarchicalMessageSelectorState extends State<HierarchicalMessageSelecto
   }
 
   Widget _buildMessageTypeItem(String messageType) {
-    final icon = _categories[messageType]?.icon ?? '📝';
+    // استخدام أيقونة افتراضية بناءً على نوع الرسالة
+    String icon = '📝'; // أيقونة افتراضية
+    if (messageType.contains('دينية')) {
+      icon = '🕌';
+    } else if (messageType.contains('عائلية')) {
+      icon = '👨‍👩‍👧‍👦';
+    } else if (messageType.contains('مهنية')) {
+      icon = '💼';
+    } else if (messageType.contains('تعزية')) {
+      icon = '🤲';
+    } else if (messageType.contains('وطنية')) {
+      icon = '🇸🇦';
+    }
+
     return Container(
       constraints: const BoxConstraints(maxWidth: 200),
       child: Row(
@@ -460,65 +491,6 @@ class _HierarchicalMessageSelectorState extends State<HierarchicalMessageSelecto
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildGenerateButton() {
-    return Container(
-      width: double.infinity,
-      height: 56, // زيادة ارتفاع الزر من 48 إلى 56
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).primaryColor,
-            Theme.of(context).primaryColor.withOpacity(0.8),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).primaryColor.withOpacity(0.3),
-            spreadRadius: 1,
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: ElevatedButton.icon(
-        onPressed: widget.isGenerating ? null : widget.onGeneratePressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16), // إضافة تباعد داخلي مناسب
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        icon: widget.isGenerating
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : const Icon(
-                Icons.auto_awesome,
-                color: Colors.white,
-                size: 20,
-              ),
-        label: Text(
-          widget.isGenerating ? 'جاري التوليد...' : 'توليد الرسالة والإرسال',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 13, // تقليل حجم الخط من 14 إلى 13
-            fontWeight: FontWeight.bold,
-          ),
-        ),
       ),
     );
   }

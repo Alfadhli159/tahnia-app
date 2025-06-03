@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class AppContact {
   final String id;
   final String name;
@@ -82,4 +80,4 @@ class AppContact {
       metadata: metadata ?? this.metadata,
     );
   }
-} 
+}

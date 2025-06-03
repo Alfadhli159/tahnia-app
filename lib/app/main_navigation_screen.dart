@@ -1,8 +1,12 @@
+// النسخة المرتبطة بشريط التنقل السفلي BottomNavigationBar
 import 'package:flutter/material.dart';
-
-import '../features/greetings/screens/schedule_greeting_screen.dart';
-// إذا لم توجد هذه الملفات، علّق الاستيراد ولا تستخدمها
-// import '../features/settings/settings_screen.dart'; // غير موجود فعليًا الآن
+import 'package:tahania_app/features/greetings/presentation/screens/send_greeting_screen.dart';
+import 'package:tahania_app/features/auto_reply/presentation/screens/auto_reply_screen.dart';
+import 'package:tahania_app/features/more/screens/official_messages_screen.dart';
+import 'package:tahania_app/features/greetings/surprise_message_screen.dart';
+import 'package:tahania_app/features/greetings/presentation/screens/templates_screen.dart';
+import 'package:tahania_app/features/greetings/presentation/screens/scheduled_messages_screen.dart';
+import 'package:tahania_app/features/settings/presentation/screens/settings_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -12,55 +16,37 @@ class MainNavigationScreen extends StatefulWidget {
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  int _selectedIndex = 0;
+  int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    Placeholder(), // الرد التلقائي
-    ScheduleGreetingScreen(), // الجدولة (متوفرة حسب الصورة)
-    Placeholder(), // السجل
-    Placeholder(), // القوالب
-    Placeholder(), // الإعدادات
-  ];
-
-  final List<String> _labels = [
-    'الرد التلقائي',
-    'الجدولة',
-    'السجل',
-    'القوالب',
-    'الإعدادات',
-  ];
-
-  final List<IconData> _icons = [
-    Icons.smart_toy_outlined,
-    Icons.calendar_today,
-    Icons.history,
-    Icons.view_module,
-    Icons.settings,
+  final List<Widget> _screens = [
+    SendGreetingScreen(), // 1- إرسال الرسالة
+    OfficialMessagesScreen(), // 2- الرسالة المصنفة
+    AutoReplyScreen(), // 3- الرد التلقائي
+    SurpriseMessageScreen(), // 4- فاجئني برسالة
+    TemplatesScreen(), // 5- القوالب
+    ScheduledMessagesScreen(), // 6- جدولة
+    SettingsScreen(), // 7- الإعدادات
   ];
 
   @override
-  Widget build(BuildContext context) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: Scaffold(
-          body: _pages[_selectedIndex],
-          bottomNavigationBar: BottomNavigationBar(
-            type: BottomNavigationBarType.fixed,
-            currentIndex: _selectedIndex,
-            selectedItemColor: Colors.teal,
-            unselectedItemColor: Colors.grey,
-            backgroundColor: Colors.white,
-            onTap: (index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
-            items: List.generate(_labels.length, (index) {
-              return BottomNavigationBarItem(
-                icon: Icon(_icons[index]),
-                label: _labels[index],
-              );
-            }),
-          ),
-        ),
-      );
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _screens[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.send), label: 'أرسل'),
+          BottomNavigationBarItem(icon: Icon(Icons.campaign), label: 'مصنفة'),
+          BottomNavigationBarItem(icon: Icon(Icons.reply_all), label: 'الرد'),
+          BottomNavigationBarItem(icon: Icon(Icons.lightbulb), label: 'فاجئني'),
+          BottomNavigationBarItem(icon: Icon(Icons.article), label: 'القوالب'),
+          BottomNavigationBarItem(icon: Icon(Icons.schedule), label: 'الجدولة'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: 'الإعدادات'),
+        ],
+      ),
+    );
+  }
 }

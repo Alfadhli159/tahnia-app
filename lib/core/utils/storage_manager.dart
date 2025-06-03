@@ -1,8 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
-import '../constants/app_constants.dart';
 import 'error_handler.dart';
 
 class StorageManager {
@@ -17,9 +15,8 @@ class StorageManager {
 
   Future<File> get _localFile async {
     final path = await _localPath;
-    return File('$path/${AppConstants.localStorageKey}.json');
+    return File('$path/tahnia_data.json');
   }
-
   Future<void> writeData(Map<String, dynamic> data) async {
     try {
       final file = await _localFile;
@@ -58,7 +55,7 @@ class StorageManager {
       if (!await file.exists()) return;
 
       final size = await file.length();
-      if (size > AppConstants.maxLocalStorageSize * 1024 * 1024) {
+      if (size > 50 * 1024 * 1024) { // 50MB limit
         await clearData();
       }
     } catch (e) {
@@ -73,7 +70,7 @@ class StorageManager {
 
       final backupPath = await _localPath;
       final backupFile =
-          File('$backupPath/${AppConstants.localStorageKey}_backup.json');
+          File('$backupPath/tahnia_data_backup.json');
       await backupFile.writeAsString(json.encode(data));
     } catch (e) {
       ErrorHandler().handleError(e);

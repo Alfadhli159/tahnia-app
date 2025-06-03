@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tahania_app/services/template_service.dart';
+import 'package:tahania_app/features/greetings/domain/models/message_template.dart';
 import 'package:uuid/uuid.dart';
 
 class TemplatesScreen extends StatefulWidget {
@@ -38,7 +39,8 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
 
     // تطبيق التصفية حسب الفئة
     if (_selectedCategory != 'الكل') {
-      templates = templates.where((t) => t.category == _selectedCategory).toList();
+      templates =
+          templates.where((t) => t.category == _selectedCategory).toList();
     }
 
     // تطبيق التصفية حسب المفضلة
@@ -48,9 +50,9 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
 
     // تطبيق التصفية حسب الوسوم
     if (_selectedTags.isNotEmpty) {
-      templates = templates.where((t) => 
-        _selectedTags.every((tag) => t.tags.contains(tag))
-      ).toList();
+      templates = templates
+          .where((t) => _selectedTags.every((tag) => t.tags.contains(tag)))
+          .toList();
     }
 
     return templates;
@@ -252,12 +254,13 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                 children: [
                   Chip(
                     label: Text(template.category),
-                    backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+                    backgroundColor:
+                        Theme.of(context).primaryColor.withOpacity(0.1),
                   ),
                   ...template.tags.map((tag) => Chip(
-                    label: Text(tag),
-                    backgroundColor: Colors.grey[200],
-                  )),
+                        label: Text(tag),
+                        backgroundColor: Colors.grey[200],
+                      )),
                 ],
               ),
             ],
@@ -295,20 +298,22 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                 'متابعة',
                 'تأكيد',
                 'شكر',
-              ].map((tag) => FilterChip(
-                label: Text(tag),
-                selected: _selectedTags.contains(tag),
-                onSelected: (selected) {
-                  setState(() {
-                    if (selected) {
-                      _selectedTags.add(tag);
-                    } else {
-                      _selectedTags.remove(tag);
-                    }
-                  });
-                  Navigator.pop(context);
-                },
-              )).toList(),
+              ]
+                  .map((tag) => FilterChip(
+                        label: Text(tag),
+                        selected: _selectedTags.contains(tag),
+                        onSelected: (selected) {
+                          setState(() {
+                            if (selected) {
+                              _selectedTags.add(tag);
+                            } else {
+                              _selectedTags.remove(tag);
+                            }
+                          });
+                          Navigator.pop(context);
+                        },
+                      ))
+                  .toList(),
             ),
           ],
         ),
@@ -394,17 +399,19 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                   'متابعة',
                   'تأكيد',
                   'شكر',
-                ].map((tag) => FilterChip(
-                  label: Text(tag),
-                  selected: selectedTags.contains(tag),
-                  onSelected: (selected) {
-                    if (selected) {
-                      selectedTags.add(tag);
-                    } else {
-                      selectedTags.remove(tag);
-                    }
-                  },
-                )).toList(),
+                ]
+                    .map((tag) => FilterChip(
+                          label: Text(tag),
+                          selected: selectedTags.contains(tag),
+                          onSelected: (selected) {
+                            if (selected) {
+                              selectedTags.add(tag);
+                            } else {
+                              selectedTags.remove(tag);
+                            }
+                          },
+                        ))
+                    .toList(),
               ),
               const SizedBox(height: 16),
               SwitchListTile(
@@ -472,4 +479,4 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
       ),
     );
   }
-} 
+}

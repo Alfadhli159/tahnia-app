@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import '../constants/app_constants.dart';
 
 class PaginationManager<T> {
   final int pageSize;

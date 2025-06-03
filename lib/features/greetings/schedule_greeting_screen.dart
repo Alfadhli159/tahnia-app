@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../services/localization/app_localizations.dart';
-import '../../../services/scheduled_message_service.dart';
+import 'package:tahania_app/features/greetings/domain/models/scheduled_message.dart';
+import 'package:tahania_app/features/greetings/domain/models/message_template.dart';
+import 'package:tahania_app/features/greetings/domain/enums/repeat_type.dart';
+import 'package:tahania_app/features/greetings/domain/enums/message_source.dart';
+import 'package:tahania_app/features/greetings/services/scheduled_message_service.dart';
 
 class ScheduleGreetingScreen extends StatefulWidget {
   const ScheduleGreetingScreen({super.key});
@@ -60,7 +63,7 @@ class _ScheduleGreetingScreenState extends State<ScheduleGreetingScreen>
       valueListenable: ScheduledMessageService.messagesNotifier,
       builder: (context, messages, child) {
         final filteredMessages = _filterMessages(messages);
-        
+
         if (filteredMessages.isEmpty) {
           return const Center(
             child: Column(
@@ -81,7 +84,7 @@ class _ScheduleGreetingScreenState extends State<ScheduleGreetingScreen>
             ),
           );
         }
-        
+
         return ListView.builder(
           itemCount: filteredMessages.length,
           itemBuilder: (context, index) {
@@ -94,58 +97,49 @@ class _ScheduleGreetingScreenState extends State<ScheduleGreetingScreen>
   }
 
   Widget _buildTemplatesTab() {
-    return ValueListenableBuilder<List<MessageTemplate>>(
-      valueListenable: ScheduledMessageService.templatesNotifier,
-      builder: (context, templates, child) {
-        if (templates.isEmpty) {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.view_module, size: 64, color: Colors.grey),
-                SizedBox(height: 16),
-                Text(
-                  'لا توجد قوالب',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                ),
-              ],
-            ),
-          );
-        }
-        
-        return ListView.builder(
-          itemCount: templates.length,
-          itemBuilder: (context, index) {
-            final template = templates[index];
-            return _buildTemplateCard(template);
-          },
-        );
-      },
+    // For now, show empty state since templates service is not fully implemented
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.view_module, size: 64, color: Colors.grey),
+          SizedBox(height: 16),
+          Text(
+            'لا توجد قوالب',
+            style: TextStyle(fontSize: 16, color: Colors.grey),
+          ),
+        ],
+      ),
     );
   }
 
   List<ScheduledMessage> _filterMessages(List<ScheduledMessage> messages) {
     if (_searchQuery.isEmpty) return messages;
-    
+
     return messages.where((message) {
-      return message.content.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-             message.recipientName.toLowerCase().contains(_searchQuery.toLowerCase());
+      return message.content
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase()) ||
+          message.recipientName
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase());
     }).toList();
   }
 
   Widget _buildMessageCard(ScheduledMessage message) {
     final isOverdue = message.scheduledTime.isBefore(DateTime.now());
-    final formattedDate = DateFormat('yyyy/MM/dd HH:mm').format(message.scheduledTime);
-    
+    final formattedDate =
+        DateFormat('yyyy/MM/dd HH:mm').format(message.scheduledTime);
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: message.isEnabled 
+          backgroundColor: message.isEnabled
               ? (isOverdue ? Colors.red : Colors.green)
               : Colors.grey,
           child: Icon(
-            message.isEnabled 
+            message.isEnabled
                 ? (isOverdue ? Icons.warning : Icons.schedule)
                 : Icons.pause,
             color: Colors.white,
@@ -184,7 +178,8 @@ class _ScheduleGreetingScreenState extends State<ScheduleGreetingScreen>
             PopupMenuItem(
               value: 'toggle',
               child: ListTile(
-                leading: Icon(message.isEnabled ? Icons.pause : Icons.play_arrow),
+                leading:
+                    Icon(message.isEnabled ? Icons.pause : Icons.play_arrow),
                 title: Text(message.isEnabled ? 'تعطيل' : 'تفعيل'),
               ),
             ),
@@ -212,53 +207,6 @@ class _ScheduleGreetingScreenState extends State<ScheduleGreetingScreen>
           ],
         ),
         onTap: () => _showEditMessageDialog(context, message),
-      ),
-    );
-  }
-
-  Widget _buildTemplateCard(MessageTemplate template) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: ListTile(
-        leading: const CircleAvatar(
-          backgroundColor: Colors.blue,
-          child: Icon(Icons.view_module, color: Colors.white),
-        ),
-        title: Text(
-          template.name,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          template.content,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: PopupMenuButton<String>(
-          onSelected: (value) => _handleTemplateAction(value, template),
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'use',
-              child: ListTile(
-                leading: Icon(Icons.send),
-                title: Text('استخدام'),
-              ),
-            ),
-            const PopupMenuItem(
-              value: 'edit',
-              child: ListTile(
-                leading: Icon(Icons.edit),
-                title: Text('تعديل'),
-              ),
-            ),
-            const PopupMenuItem(
-              value: 'delete',
-              child: ListTile(
-                leading: Icon(Icons.delete, color: Colors.red),
-                title: Text('حذف', style: TextStyle(color: Colors.red)),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -295,36 +243,20 @@ class _ScheduleGreetingScreenState extends State<ScheduleGreetingScreen>
     }
   }
 
-  void _handleTemplateAction(String action, MessageTemplate template) {
-    switch (action) {
-      case 'use':
-        _useTemplate(template);
-        break;
-      case 'edit':
-        // Implement template editing
-        break;
-      case 'delete':
-        ScheduledMessageService.deleteTemplate(template.id);
-        break;
-    }
-  }
-
   void _duplicateMessage(ScheduledMessage message) {
     final newMessage = ScheduledMessage(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       content: message.content,
       recipientName: message.recipientName,
+      recipientNumber: message.recipientNumber,
       recipientPhone: message.recipientPhone,
       scheduledTime: DateTime.now().add(const Duration(hours: 1)),
       repeatType: message.repeatType,
       isEnabled: true,
       createdAt: DateTime.now(),
+      source: message.source,
     );
     ScheduledMessageService.addMessage(newMessage);
-  }
-
-  void _useTemplate(MessageTemplate template) {
-    _showAddMessageDialog(context, template: template);
   }
 
   void _showSearchDialog() {
@@ -358,7 +290,8 @@ class _ScheduleGreetingScreenState extends State<ScheduleGreetingScreen>
     );
   }
 
-  void _showAddMessageDialog(BuildContext context, {MessageTemplate? template}) {
+  void _showAddMessageDialog(BuildContext context,
+      {MessageTemplate? template}) {
     showDialog(
       context: context,
       builder: (context) => _MessageDialog(template: template),
@@ -434,7 +367,7 @@ class _MessageDialogState extends State<_MessageDialog> {
     _recipientPhoneController = TextEditingController(
       text: widget.message?.recipientPhone ?? '',
     );
-    
+
     if (widget.message != null) {
       _selectedDate = widget.message!.scheduledTime;
       _selectedTime = TimeOfDay.fromDateTime(widget.message!.scheduledTime);
@@ -446,7 +379,8 @@ class _MessageDialogState extends State<_MessageDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.message == null ? 'إضافة رسالة مجدولة' : 'تعديل الرسالة'),
+      title:
+          Text(widget.message == null ? 'إضافة رسالة مجدولة' : 'تعديل الرسالة'),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -598,14 +532,17 @@ class _MessageDialogState extends State<_MessageDialog> {
     );
 
     final message = ScheduledMessage(
-      id: widget.message?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      id: widget.message?.id ??
+          DateTime.now().millisecondsSinceEpoch.toString(),
       content: _contentController.text.trim(),
       recipientName: _recipientNameController.text.trim(),
+      recipientNumber: _recipientPhoneController.text.trim(),
       recipientPhone: _recipientPhoneController.text.trim(),
       scheduledTime: scheduledTime,
       repeatType: _repeatType,
       isEnabled: _isEnabled,
       createdAt: widget.message?.createdAt ?? DateTime.now(),
+      source: MessageSource.whatsapp,
     );
 
     if (widget.message == null) {

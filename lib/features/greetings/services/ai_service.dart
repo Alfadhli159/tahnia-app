@@ -2,17 +2,17 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import '../models/greeting.dart';
-import '../utils/fallback_generator.dart';
+import '../../../core/utils/fallback_generator.dart';
 import 'config_service.dart';
 
 class AIService {
   static final Logger _logger = Logger();
-  static const int _timeoutSeconds = 15; // تقليل مهلة الانتظار من 30 إلى 15 ثانية
-  static bool _isInitialized = false;
+  static const int _timeoutSeconds =
+      15; // تقليل مهلة الانتظار من 30 إلى 15 ثانية
+
 
   /// توليد تهنئة باستخدام الذكاء الاصطناعي مع نظام احتياطي ذكي
-// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
-//   static Future<Greeting> generateGreeting(
+  static Future<Greeting> generateGreeting(
     String prompt, {
     String? senderName,
     String? recipientName,
@@ -22,18 +22,19 @@ class AIService {
     AIProvider? preferredProvider,
   }) async {
     await ConfigService.initialize();
-    
+
     final provider = preferredProvider ?? ConfigService.defaultProvider;
-    
+
     _logger.i('🤖 محاولة توليد رسالة ذكية باستخدام: ${provider.name}');
     _logger.d('النص المطلوب: $prompt');
 
     // التحقق من وجود مفتاح API
     if (!ConfigService.isApiKeyConfigured(provider)) {
-      _logger.w('⚠️ مفتاح API غير مُعرَّف لـ ${provider.name}، استخدام النظام الاحتياطي');
+      _logger.w(
+          '⚠️ مفتاح API غير مُعرَّف لـ ${provider.name}، استخدام النظام الاحتياطي');
       return _generateFallbackGreeting(
-        prompt, 
-        senderName: senderName, 
+        prompt,
+        senderName: senderName,
         recipientName: recipientName,
         messageType: messageType,
         occasion: occasion,
@@ -44,34 +45,34 @@ class AIService {
     try {
       final greeting = await _callAIAPI(provider, prompt);
       _logger.i('✅ تم توليد الرسالة بنجاح باستخدام ${provider.name}');
-// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
-//       return Greeting.fromAI(content: greeting, provider: provider.name);
+      return Greeting.fromAI(content: greeting, provider: provider.name);
     } catch (e) {
       _logger.e('❌ فشل في توليد الرسالة: $e');
-      
+
       // محاولة استخدام مزود بديل
       if (preferredProvider == null) {
-        final alternativeProvider = provider == AIProvider.openai 
-            ? AIProvider.openrouter 
+        final alternativeProvider = provider == AIProvider.openai
+            ? AIProvider.openrouter
             : AIProvider.openai;
-            
+
         if (ConfigService.isApiKeyConfigured(alternativeProvider)) {
-          _logger.i('🔄 محاولة استخدام المزود البديل: ${alternativeProvider.name}');
+          _logger.i(
+              '🔄 محاولة استخدام المزود البديل: ${alternativeProvider.name}');
           try {
             final greeting = await _callAIAPI(alternativeProvider, prompt);
             _logger.i('✅ تم توليد الرسالة بنجاح باستخدام المزود البديل');
-// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
-//             return Greeting.fromAI(content: greeting, provider: alternativeProvider.name);
+            return Greeting.fromAI(
+                content: greeting, provider: alternativeProvider.name);
           } catch (e2) {
             _logger.e('❌ فشل المزود البديل أيضاً: $e2');
           }
         }
       }
-      
+
       // استخدام النظام الاحتياطي
       return _generateFallbackGreeting(
-        prompt, 
-        senderName: senderName, 
+        prompt,
+        senderName: senderName,
         recipientName: recipientName,
         messageType: messageType,
         occasion: occasion,
@@ -91,13 +92,11 @@ class AIService {
       "model": model,
       "messages": [
         {
-          "role": "system", 
-          "content": "أنت مساعد ذكي داخل تطبيق جوال متخصص في توليد رسائل تهنئة باللغة العربية الفصحى، وفقًا لمعلومات المستخدم. رسالتك يجب أن تكون شخصية، سليمة نحويًا، مصاغة بأسلوب أدبي جذاب وغير مكرر. استهدف تحسين تجربة المستفيد بجعل الرسالة قابلة للتعديل لاحقًا، وتُلائم نوع المناسبة والعلاقة، دون استخدام قوالب أو نصوص عامة. الرسالة يجب أن تبدأ بتحية لبقة، وتتضمّن اسم المستلم بلقب إن وُجد، وتنتهي بتوقيع أنيق باسم المرسل."
+          "role": "system",
+          "content":
+              "أنت مساعد ذكي داخل تطبيق جوال متخصص في توليد رسائل تهنئة باللغة العربية الفصحى، وفقًا لمعلومات المستخدم. رسالتك يجب أن تكون شخصية، سليمة نحويًا، مصاغة بأسلوب أدبي جذاب وغير مكرر. استهدف تحسين تجربة المستفيد بجعل الرسالة قابلة للتعديل لاحقًا، وتُلائم نوع المناسبة والعلاقة، دون استخدام قوالب أو نصوص عامة. الرسالة يجب أن تبدأ بتحية لبقة، وتتضمّن اسم المستلم بلقب إن وُجد، وتنتهي بتوقيع أنيق باسم المرسل."
         },
-        {
-          "role": "user", 
-          "content": prompt
-        }
+        {"role": "user", "content": prompt}
       ],
       "max_tokens": 300,
       "temperature": 0.8,
@@ -118,21 +117,22 @@ class AIService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      
+
       // التحقق من صحة البيانات المُستلمة
       if (!_isValidResponse(data)) {
         throw AIServiceException('استجابة غير صالحة من الخدمة الذكية');
       }
 
       final content = data['choices'][0]['message']['content'] as String;
-      
+
       if (content.trim().isEmpty) {
         throw AIServiceException('محتوى فارغ من الخدمة الذكية');
       }
 
       return content.trim();
     } else {
-      final errorMessage = _getLocalizedErrorMessage(response.statusCode, provider);
+      final errorMessage =
+          _getLocalizedErrorMessage(response.statusCode, provider);
       throw AIServiceException(errorMessage);
     }
   }
@@ -140,16 +140,15 @@ class AIService {
   /// التحقق من صحة استجابة API
   static bool _isValidResponse(Map<String, dynamic> data) {
     return data.containsKey('choices') &&
-           data['choices'] is List &&
-           (data['choices'] as List).isNotEmpty &&
-           data['choices'][0] is Map &&
-           (data['choices'][0] as Map).containsKey('message') &&
-           (data['choices'][0]['message'] as Map).containsKey('content');
+        data['choices'] is List &&
+        (data['choices'] as List).isNotEmpty &&
+        data['choices'][0] is Map &&
+        (data['choices'][0] as Map).containsKey('message') &&
+        (data['choices'][0]['message'] as Map).containsKey('content');
   }
 
   /// توليد رسالة احتياطية
-// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
-//   static Greeting _generateFallbackGreeting(
+  static Greeting _generateFallbackGreeting(
     String prompt, {
     String? senderName,
     String? recipientName,
@@ -158,7 +157,7 @@ class AIService {
     String? purpose,
   }) {
     _logger.i('🔄 استخدام النظام الاحتياطي لتوليد الرسالة');
-    
+
     final content = FallbackGenerator.generateGreeting(
       prompt,
       senderName: senderName,
@@ -167,9 +166,8 @@ class AIService {
       occasion: occasion,
       purpose: purpose,
     );
-    
-// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
-//     return Greeting.fallback(content: content);
+
+    return Greeting.fallback(content: content);
   }
 
   /// رسائل خطأ مُعرَّبة للمستخدم النهائي
@@ -195,10 +193,12 @@ class AIService {
   /// التحقق من حالة الخدمة
   static Future<ServiceStatus> checkServiceStatus() async {
     await ConfigService.initialize();
-    
-    final openaiConfigured = ConfigService.isApiKeyConfigured(AIProvider.openai);
-    final openrouterConfigured = ConfigService.isApiKeyConfigured(AIProvider.openrouter);
-    
+
+    final openaiConfigured =
+        ConfigService.isApiKeyConfigured(AIProvider.openai);
+    final openrouterConfigured =
+        ConfigService.isApiKeyConfigured(AIProvider.openrouter);
+
     return ServiceStatus(
       openaiAvailable: openaiConfigured,
       openrouterAvailable: openrouterConfigured,
@@ -212,7 +212,7 @@ class AIService {
 class AIServiceException implements Exception {
   final String message;
   const AIServiceException(this.message);
-  
+
   @override
   String toString() => 'AIServiceException: $message';
 }

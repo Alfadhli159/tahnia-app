@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import '../utils/performance_utils.dart';
 
 class OptimizedListView extends StatelessWidget {
@@ -13,7 +12,7 @@ class OptimizedListView extends StatelessWidget {
   final Widget? separator;
 
   const OptimizedListView({
-    Key? key,
+    super.key,
     required this.children,
     this.width,
     this.height,
@@ -22,20 +21,30 @@ class OptimizedListView extends StatelessWidget {
     this.shrinkWrap = false,
     this.scrollDirection = Axis.vertical,
     this.separator,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return PerformanceUtils.buildWithPerformance(
-      child: ListView.separated(
-        key: const ValueKey('optimized_list'),
-        children: children,
-        separatorBuilder: (context, index) => separator ?? const SizedBox(height: 8),
-        padding: padding ?? const EdgeInsets.all(8),
-        physics: physics ?? const BouncingScrollPhysics(),
-        shrinkWrap: shrinkWrap,
-        scrollDirection: scrollDirection,
-      ),
+      child: separator != null
+          ? ListView.separated(
+              key: const ValueKey('optimized_list'),
+              itemCount: children.length,
+              itemBuilder: (context, index) => children[index],
+              separatorBuilder: (context, index) => separator!,
+              padding: padding ?? const EdgeInsets.all(8),
+              physics: physics ?? const BouncingScrollPhysics(),
+              shrinkWrap: shrinkWrap,
+              scrollDirection: scrollDirection,
+            )
+          : ListView(
+              key: const ValueKey('optimized_list'),
+              padding: padding ?? const EdgeInsets.all(8),
+              physics: physics ?? const BouncingScrollPhysics(),
+              shrinkWrap: shrinkWrap,
+              scrollDirection: scrollDirection,
+              children: children,
+            ),
       maintainState: true,
     );
   }

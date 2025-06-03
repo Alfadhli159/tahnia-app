@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-
-// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
-// class Greeting {
+class Greeting {
   final String id;
   final String content;
   final String category;
@@ -11,9 +8,10 @@ import 'package:flutter/material.dart';
   final bool isSent;
   final String? imageUrl;
   final Map<String, dynamic>? metadata;
+  final String? provider;
+  final bool isGenerated;
 
-// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
-//   Greeting({
+  Greeting({
     required this.id,
     required this.content,
     required this.category,
@@ -23,12 +21,47 @@ import 'package:flutter/material.dart';
     this.isSent = false,
     this.imageUrl,
     this.metadata,
+    this.provider,
+    this.isGenerated = false,
   });
 
-// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
-//   factory Greeting.fromJson(Map<String, dynamic> json) {
-// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
-//     return Greeting(
+  /// Constructor for AI-generated greetings
+  factory Greeting.fromAI({
+    required String content,
+    required String provider,
+    String? category,
+    List<String>? recipientIds,
+  }) {
+    return Greeting(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      content: content,
+      category: category ?? 'ai_generated',
+      createdAt: DateTime.now(),
+      recipientIds: recipientIds ?? [],
+      provider: provider,
+      isGenerated: true,
+    );
+  }
+
+  /// Constructor for fallback greetings
+  factory Greeting.fallback({
+    required String content,
+    String? category,
+    List<String>? recipientIds,
+  }) {
+    return Greeting(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      content: content,
+      category: category ?? 'fallback',
+      createdAt: DateTime.now(),
+      recipientIds: recipientIds ?? [],
+      provider: 'fallback',
+      isGenerated: false,
+    );
+  }
+
+  factory Greeting.fromJson(Map<String, dynamic> json) {
+    return Greeting(
       id: json['id'] as String,
       content: json['content'] as String,
       category: json['category'] as String,
@@ -40,6 +73,8 @@ import 'package:flutter/material.dart';
       isSent: json['isSent'] as bool? ?? false,
       imageUrl: json['imageUrl'] as String?,
       metadata: json['metadata'] as Map<String, dynamic>?,
+      provider: json['provider'] as String?,
+      isGenerated: json['isGenerated'] as bool? ?? false,
     );
   }
 
@@ -54,11 +89,12 @@ import 'package:flutter/material.dart';
       'isSent': isSent,
       'imageUrl': imageUrl,
       'metadata': metadata,
+      'provider': provider,
+      'isGenerated': isGenerated,
     };
   }
 
-// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
-//   Greeting copyWith({
+  Greeting copyWith({
     String? id,
     String? content,
     String? category,
@@ -68,9 +104,10 @@ import 'package:flutter/material.dart';
     bool? isSent,
     String? imageUrl,
     Map<String, dynamic>? metadata,
+    String? provider,
+    bool? isGenerated,
   }) {
-// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
-//     return Greeting(
+    return Greeting(
       id: id ?? this.id,
       content: content ?? this.content,
       category: category ?? this.category,
@@ -80,6 +117,8 @@ import 'package:flutter/material.dart';
       isSent: isSent ?? this.isSent,
       imageUrl: imageUrl ?? this.imageUrl,
       metadata: metadata ?? this.metadata,
+      provider: provider ?? this.provider,
+      isGenerated: isGenerated ?? this.isGenerated,
     );
   }
-} 
+}

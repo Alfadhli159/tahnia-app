@@ -1,8 +1,5 @@
-import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../constants/app_constants.dart';
 import 'error_handler.dart';
 
 class PerformanceOptimizer {
@@ -89,7 +86,7 @@ class PerformanceOptimizer {
 
   void optimizeMemoryUsage() {
     // Clear image cache if it gets too large
-    if (_imageCache.length > AppConstants.maxListSize) {
+    if (_imageCache.length > 100) {
       _imageCache.clear();
     }
   }

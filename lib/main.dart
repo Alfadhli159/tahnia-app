@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart'; // ✅ أضف هذا
+
 import 'app/app_routes.dart';
 import 'config/theme/app_theme.dart';
 import 'core/services/navigation_service.dart';
+import 'services/firebase_service.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // ✅ ضروري قبل تهيئة Firebase
-  await Firebase.initializeApp(); // ✅ تهيئة Firebase
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase using our service
+  await FirebaseService.initialize();
 
   runApp(const TahniaApp());
 }
 
 class TahniaApp extends StatelessWidget {
-  const TahniaApp({Key? key}) : super(key: key);
+  const TahniaApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context) => MaterialApp(
       title: 'تطبيق تهنئة',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
@@ -24,5 +26,4 @@ class TahniaApp extends StatelessWidget {
       initialRoute: AppRoutes.splash,
       routes: AppRoutes.routes,
     );
-  }
 }

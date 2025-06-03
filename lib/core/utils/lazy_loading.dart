@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../constants/app_constants.dart';
 import 'performance_optimizer.dart';
 
 class LazyLoading {

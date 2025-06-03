@@ -3,16 +3,16 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:flutter/material.dart';
-// تم تعليق هذا الاستيراد تلقائياً: import 'package:tahania_app/services/sticker_service.dart';
+import 'package:tahania_app/features/greetings/domain/models/sticker.dart';
 
 class ShareService {
-  static final ScreenshotController _screenshotController = ScreenshotController();
+  static final ScreenshotController _screenshotController =
+      ScreenshotController();
 
   /// مشاركة تهنئة مع ملصق
   static Future<void> shareGreeting({
     required String greeting,
-// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
-//     required Sticker sticker,
+    required Sticker sticker,
     required String recipientName,
     required String senderName,
   }) async {
@@ -37,6 +37,20 @@ class ShareService {
         [XFile(file.path)],
         text: 'تهنئة من $senderName إلى $recipientName',
       );
+    } catch (e) {
+      print('خطأ في مشاركة التهنئة: $e');
+    }
+  }
+
+  /// مشاركة رسالة نصية بسيطة
+  static Future<void> shareSimpleGreeting({
+    required String greeting,
+    required String recipientName,
+    required String senderName,
+  }) async {
+    try {
+      String shareText = '$greeting\n\nإلى: $recipientName\nمن: $senderName';
+      await Share.share(shareText);
     } catch (e) {
       print('خطأ في مشاركة التهنئة: $e');
     }
@@ -74,8 +88,7 @@ class ShareService {
   /// بناء واجهة التهنئة القابلة للمشاركة
   static Widget _buildShareableGreeting({
     required String greeting,
-// 🚫 تم تعطيل هذا السطر تلقائيًا لتنظيف المشروع:
-//     required Sticker sticker,
+    required Sticker sticker,
     required String recipientName,
     required String senderName,
   }) {
@@ -157,4 +170,4 @@ class ShareService {
       ),
     );
   }
-} 
+}

@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:tahania_app/services/scheduled_message_service.dart';
-import 'package:tahania_app/config/theme/app_theme.dart';
+import 'package:tahania_app/features/greetings/domain/models/scheduled_message.dart';
+import 'package:tahania_app/features/greetings/domain/models/message_template.dart';
+import 'package:tahania_app/features/greetings/domain/enums/message_source.dart';
+import 'package:tahania_app/features/greetings/services/scheduled_message_service.dart';
+import 'package:tahania_app/services/template_service.dart';
 import 'package:intl/intl.dart';
 
 class ScheduledMessagesScreen extends StatefulWidget {
   const ScheduledMessagesScreen({Key? key}) : super(key: key);
 
   @override
-  State<ScheduledMessagesScreen> createState() => _ScheduledMessagesScreenState();
+  State<ScheduledMessagesScreen> createState() =>
+      _ScheduledMessagesScreenState();
 }
 
 class _ScheduledMessagesScreenState extends State<ScheduledMessagesScreen> {
@@ -33,17 +37,36 @@ class _ScheduledMessagesScreenState extends State<ScheduledMessagesScreen> {
     }
 
     // تطبيق التصفية
-    messages = ScheduledMessageService.filterMessages(
-      isEnabled: _showEnabledOnly ? true : null,
-      source: _showWhatsAppOnly ? MessageSource.whatsapp : null,
-      isRepeating: _showRepeatingOnly ? true : null,
-    );
+    if (_showEnabledOnly) {
+      messages = messages.where((m) => m.isEnabled).toList();
+    }
+
+    if (_showWhatsAppOnly) {
+      messages =
+          messages.where((m) => m.source == MessageSource.whatsapp).toList();
+    }
+
+    if (_showRepeatingOnly) {
+      messages = messages.where((m) => m.isRepeating).toList();
+    }
 
     // تطبيق الترتيب
-    messages = ScheduledMessageService.sortMessages(
-      sortBy: _sortBy,
-      ascending: _sortAscending,
-    );
+    messages.sort((a, b) {
+      int comparison;
+      switch (_sortBy) {
+        case 'name':
+          comparison = a.recipientName.compareTo(b.recipientName);
+          break;
+        case 'number':
+          comparison = a.recipientNumber.compareTo(b.recipientNumber);
+          break;
+        case 'date':
+        default:
+          comparison = a.scheduledTime.compareTo(b.scheduledTime);
+          break;
+      }
+      return _sortAscending ? comparison : -comparison;
+    });
 
     return messages;
   }
@@ -148,7 +171,7 @@ class _ScheduledMessagesScreenState extends State<ScheduledMessagesScreen> {
               children: [
                 Icon(
                   message.source == MessageSource.whatsapp
-                      ? Icons.whatsapp
+                      ? Icons.message
                       : Icons.sms,
                   color: message.source == MessageSource.whatsapp
                       ? Colors.green
@@ -189,7 +212,7 @@ class _ScheduledMessagesScreenState extends State<ScheduledMessagesScreen> {
                   color: theme.dividerColor,
                 ),
               ),
-              child: Text(message.message),
+              child: Text(message.content),
             ),
             const SizedBox(height: 16),
 
@@ -273,19 +296,19 @@ class _ScheduledMessagesScreenState extends State<ScheduledMessagesScreen> {
     if (message.repeatPattern == 'custom' && message.repeatDays != null) {
       final days = message.repeatDays!.map((day) {
         switch (day) {
-          case 0:
+          case '0':
             return 'الأحد';
-          case 1:
+          case '1':
             return 'الإثنين';
-          case 2:
+          case '2':
             return 'الثلاثاء';
-          case 3:
+          case '3':
             return 'الأربعاء';
-          case 4:
+          case '4':
             return 'الخميس';
-          case 5:
+          case '5':
             return 'الجمعة';
-          case 6:
+          case '6':
             return 'السبت';
           default:
             return '';
@@ -497,7 +520,7 @@ class _MessageDialogState extends State<_MessageDialog> {
   late MessageSource _selectedSource;
   late bool _isRepeating;
   late String? _repeatPattern;
-  late List<int>? _repeatDays;
+  late List<String>? _repeatDays;
   late DateTime? _repeatEndDate;
   late bool _notifyBeforeSending;
   late int _notifyBeforeMinutes;
@@ -506,9 +529,11 @@ class _MessageDialogState extends State<_MessageDialog> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.message?.recipientName);
-    _numberController = TextEditingController(text: widget.message?.recipientNumber);
-    _messageController = TextEditingController(text: widget.message?.message);
+    _nameController =
+        TextEditingController(text: widget.message?.recipientName);
+    _numberController =
+        TextEditingController(text: widget.message?.recipientNumber);
+    _messageController = TextEditingController(text: widget.message?.content);
     _selectedDate = widget.message?.scheduledTime ?? DateTime.now();
     _selectedTime = TimeOfDay.fromDateTime(
       widget.message?.scheduledTime ?? DateTime.now(),
@@ -533,10 +558,10 @@ class _MessageDialogState extends State<_MessageDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return AlertDialog(
-      title: Text(widget.message == null ? 'إضافة رسالة مجدولة' : 'تعديل الرسالة المجدولة'),
+      title: Text(widget.message == null
+          ? 'إضافة رسالة مجدولة'
+          : 'تعديل الرسالة المجدولة'),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -545,7 +570,7 @@ class _MessageDialogState extends State<_MessageDialog> {
             children: [
               // اختيار قالب
               ValueListenableBuilder<List<MessageTemplate>>(
-                valueListenable: ScheduledMessageService.templatesNotifier,
+                valueListenable: TemplateService.templatesNotifier,
                 builder: (context, templates, child) {
                   if (templates.isEmpty) return const SizedBox.shrink();
 
@@ -644,7 +669,8 @@ class _MessageDialogState extends State<_MessageDialog> {
                           context: context,
                           initialDate: _selectedDate,
                           firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                          lastDate:
+                              DateTime.now().add(const Duration(days: 365)),
                         );
                         if (date != null) {
                           setState(() {
@@ -681,7 +707,7 @@ class _MessageDialogState extends State<_MessageDialog> {
                   labelText: 'نوع الرسالة',
                   border: OutlineInputBorder(),
                 ),
-                items: const [
+                items: [
                   DropdownMenuItem(
                     value: MessageSource.whatsapp,
                     child: Text('واتساب'),
@@ -699,158 +725,6 @@ class _MessageDialogState extends State<_MessageDialog> {
                   }
                 },
               ),
-              const SizedBox(height: 16),
-              SwitchListTile(
-                title: const Text('تكرار الرسالة'),
-                value: _isRepeating,
-                onChanged: (value) {
-                  setState(() {
-                    _isRepeating = value;
-                    if (!value) {
-                      _repeatPattern = null;
-                      _repeatDays = null;
-                      _repeatEndDate = null;
-                    } else if (_repeatPattern == null) {
-                      _repeatPattern = 'daily';
-                    }
-                  });
-                },
-              ),
-              if (_isRepeating) ...[
-                const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
-                  value: _repeatPattern,
-                  decoration: const InputDecoration(
-                    labelText: 'نمط التكرار',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'daily',
-                      child: Text('يومي'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'weekly',
-                      child: Text('أسبوعي'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'monthly',
-                      child: Text('شهري'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'custom',
-                      child: Text('أيام محددة'),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _repeatPattern = value;
-                        if (value == 'custom') {
-                          _repeatDays = [1, 3, 5]; // الاثنين، الأربعاء، الجمعة
-                        } else {
-                          _repeatDays = null;
-                        }
-                      });
-                    }
-                  },
-                ),
-                if (_repeatPattern == 'custom') ...[
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: List.generate(7, (index) {
-                      final day = index;
-                      final isSelected = _repeatDays?.contains(day) ?? false;
-                      return FilterChip(
-                        label: Text(_getDayName(day)),
-                        selected: isSelected,
-                        onSelected: (selected) {
-                          setState(() {
-                            _repeatDays ??= [];
-                            if (selected) {
-                              _repeatDays!.add(day);
-                            } else {
-                              _repeatDays!.remove(day);
-                            }
-                          });
-                        },
-                      );
-                    }),
-                  ),
-                ],
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.calendar_today),
-                  label: Text(
-                    _repeatEndDate == null
-                        ? 'بدون تاريخ انتهاء'
-                        : DateFormat('yyyy/MM/dd').format(_repeatEndDate!),
-                  ),
-                  onPressed: () async {
-                    final date = await showDatePicker(
-                      context: context,
-                      initialDate: _repeatEndDate ?? DateTime.now().add(const Duration(days: 30)),
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime.now().add(const Duration(days: 365)),
-                    );
-                    if (date != null) {
-                      setState(() {
-                        _repeatEndDate = date;
-                      });
-                    }
-                  },
-                ),
-              ],
-              const SizedBox(height: 16),
-              SwitchListTile(
-                title: const Text('إشعار قبل الإرسال'),
-                value: _notifyBeforeSending,
-                onChanged: (value) {
-                  setState(() {
-                    _notifyBeforeSending = value;
-                  });
-                },
-              ),
-              if (_notifyBeforeSending) ...[
-                const SizedBox(height: 8),
-                DropdownButtonFormField<int>(
-                  value: _notifyBeforeMinutes,
-                  decoration: const InputDecoration(
-                    labelText: 'قبل كم دقيقة',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 5,
-                      child: Text('5 دقائق'),
-                    ),
-                    DropdownMenuItem(
-                      value: 10,
-                      child: Text('10 دقائق'),
-                    ),
-                    DropdownMenuItem(
-                      value: 15,
-                      child: Text('15 دقيقة'),
-                    ),
-                    DropdownMenuItem(
-                      value: 30,
-                      child: Text('30 دقيقة'),
-                    ),
-                    DropdownMenuItem(
-                      value: 60,
-                      child: Text('ساعة'),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _notifyBeforeMinutes = value;
-                      });
-                    }
-                  },
-                ),
-              ],
             ],
           ),
         ),
@@ -872,10 +746,11 @@ class _MessageDialogState extends State<_MessageDialog> {
               );
 
               final message = ScheduledMessage(
-                id: widget.message?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+                id: widget.message?.id ??
+                    DateTime.now().millisecondsSinceEpoch.toString(),
+                content: _messageController.text,
                 recipientName: _nameController.text,
                 recipientNumber: _numberController.text,
-                message: _messageController.text,
                 scheduledTime: scheduledTime,
                 isRepeating: _isRepeating,
                 repeatPattern: _repeatPattern,
@@ -886,6 +761,7 @@ class _MessageDialogState extends State<_MessageDialog> {
                 notifyBeforeSending: _notifyBeforeSending,
                 notifyBeforeMinutes: _notifyBeforeMinutes,
                 templateId: _selectedTemplateId,
+                createdAt: widget.message?.createdAt ?? DateTime.now(),
               );
 
               widget.onSave(message);
@@ -897,25 +773,4 @@ class _MessageDialogState extends State<_MessageDialog> {
       ],
     );
   }
-
-  String _getDayName(int day) {
-    switch (day) {
-      case 0:
-        return 'الأحد';
-      case 1:
-        return 'الإثنين';
-      case 2:
-        return 'الثلاثاء';
-      case 3:
-        return 'الأربعاء';
-      case 4:
-        return 'الخميس';
-      case 5:
-        return 'الجمعة';
-      case 6:
-        return 'السبت';
-      default:
-        return '';
-    }
-  }
-} 
+}

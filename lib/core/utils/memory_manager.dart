@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
-import '../constants/app_constants.dart';
 
 class MemoryManager {
   static final MemoryManager _instance = MemoryManager._internal();

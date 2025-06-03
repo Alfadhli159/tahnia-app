@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:flutter/foundation.dart';
-import '../constants/app_constants.dart';
 
 class PerformanceTester {
   static final PerformanceTester _instance = PerformanceTester._internal();

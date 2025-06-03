@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 
 class CacheManager {
   static final CacheManager _instance = CacheManager._internal();
@@ -18,15 +16,15 @@ class CacheManager {
 
   dynamic get(String key) {
     if (!_cache.containsKey(key)) return null;
-    
+
     final cacheTime = _cacheTimes[key];
     if (cacheTime == null) return null;
-    
+
     if (DateTime.now().difference(cacheTime) > _maxAge) {
       remove(key);
       return null;
     }
-    
+
     return _cache[key];
   }
 
@@ -66,15 +64,15 @@ class ImageCacheManager {
 
   dynamic getImage(String url) {
     if (!_imageCache.containsKey(url)) return null;
-    
+
     final cacheTime = _imageCacheTimes[url];
     if (cacheTime == null) return null;
-    
+
     if (DateTime.now().difference(cacheTime) > _maxImageAge) {
       removeImage(url);
       return null;
     }
-    
+
     return _imageCache[url];
   }
 

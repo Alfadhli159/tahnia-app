@@ -1,9 +1,11 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../core/services/ai_service.dart';
-import 'dart:math';
+
+import '../../services/ai_service.dart';
 
 class SurpriseMessageScreen extends StatefulWidget {
   const SurpriseMessageScreen({super.key});
@@ -17,12 +19,12 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
   final TextEditingController messageController = TextEditingController();
   final TextEditingController senderNameController = TextEditingController();
   final TextEditingController recipientNameController = TextEditingController();
-  
+
   bool isGenerating = false;
   bool isMessageGenerated = false;
   String currentOccasion = '';
   String currentType = '';
-  
+
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late AnimationController _surpriseController;
@@ -60,7 +62,7 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
-    
+
     _surpriseController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
@@ -68,7 +70,7 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
     _surpriseAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _surpriseController, curve: Curves.elasticOut),
     );
-    
+
     _animationController.forward();
   }
 
@@ -91,7 +93,7 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
     final random = Random();
     final selectedOccasion = occasions[random.nextInt(occasions.length)];
     final selectedType = messageTypes[random.nextInt(messageTypes.length)];
-    
+
     currentOccasion = selectedOccasion['name']!;
     currentType = selectedType['name']!;
 
@@ -123,22 +125,21 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
         senderName: senderNameController.text.trim(),
         recipientName: recipientNameController.text.trim(),
       );
-      
+
       messageController.text = greeting.content;
-      
+
       setState(() {
         isGenerating = false;
         isMessageGenerated = true;
       });
-      
+
       _surpriseController.forward();
       HapticFeedback.lightImpact();
-      
     } on AIServiceException catch (e) {
       setState(() {
         isGenerating = false;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.message),
@@ -149,7 +150,7 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
       setState(() {
         isGenerating = false;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.'),
@@ -163,7 +164,7 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
     if (messageController.text.trim().isNotEmpty) {
       await Clipboard.setData(ClipboardData(text: messageController.text));
       HapticFeedback.selectionClick();
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('تم نسخ الرسالة إلى الحافظة! 📋'),
@@ -187,10 +188,11 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
     if (messageController.text.trim().isNotEmpty) {
       final message = Uri.encodeComponent(messageController.text);
       final whatsappUrl = 'https://wa.me/?text=$message';
-      
+
       try {
         if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
-          await launchUrl(Uri.parse(whatsappUrl), mode: LaunchMode.externalApplication);
+          await launchUrl(Uri.parse(whatsappUrl),
+              mode: LaunchMode.externalApplication);
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -231,7 +233,7 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.purple.withOpacity(0.1),
+                Colors.purple.withValues(alpha: 0.1),
                 Colors.white,
               ],
             ),
@@ -246,7 +248,8 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                   // Header Card
                   Card(
                     elevation: 8,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
@@ -258,7 +261,8 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                       ),
                       child: Column(
                         children: [
-                          const Icon(Icons.auto_awesome, size: 48, color: Colors.white),
+                          const Icon(Icons.auto_awesome,
+                              size: 48, color: Colors.white),
                           const SizedBox(height: 12),
                           const Text(
                             'فاجئني برسالة تهنئة!',
@@ -273,7 +277,7 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                             'دع الذكاء الاصطناعي يختار لك مناسبة ونوع رسالة مفاجئة',
                             style: TextStyle(
                               fontSize: 16,
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withValues(alpha: 0.9),
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -281,13 +285,14 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Input Fields
                   Card(
                     elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
@@ -295,7 +300,8 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                         children: [
                           const Text(
                             'معلومات الرسالة (اختيارية)',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 16),
                           TextField(
@@ -304,7 +310,8 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                               labelText: 'اسم المستلم',
                               hintText: 'أدخل اسم الشخص المستلم',
                               prefixIcon: const Icon(Icons.person_outline),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8)),
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -314,16 +321,17 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                               labelText: 'اسم المرسل',
                               hintText: 'أدخل اسمك',
                               prefixIcon: const Icon(Icons.person),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8)),
                             ),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Generate Button
                   SizedBox(
                     width: double.infinity,
@@ -333,7 +341,8 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.purple,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
                         elevation: 8,
                       ),
                       child: isGenerating
@@ -345,11 +354,13 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                                   height: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
-                                const Text('جاري التوليد...', style: TextStyle(fontSize: 18)),
+                                const Text('جاري التوليد...',
+                                    style: TextStyle(fontSize: 18)),
                               ],
                             )
                           : Row(
@@ -357,21 +368,25 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                               children: [
                                 const Icon(Icons.auto_awesome, size: 24),
                                 const SizedBox(width: 8),
-                                const Text('فاجئني برسالة!', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                const Text('فاجئني برسالة!',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold)),
                               ],
                             ),
                     ),
                   ),
-                  
+
                   if (isMessageGenerated) ...[
                     const SizedBox(height: 24),
-                    
+
                     // Generated Message Info
                     ScaleTransition(
                       scale: _surpriseAnimation,
                       child: Card(
                         elevation: 4,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
@@ -379,11 +394,14 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                             children: [
                               Row(
                                 children: [
-                                  const Icon(Icons.info_outline, color: Colors.purple),
+                                  const Icon(Icons.info_outline,
+                                      color: Colors.purple),
                                   const SizedBox(width: 8),
                                   const Text(
                                     'تفاصيل الرسالة المولدة',
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                 ],
                               ),
@@ -393,25 +411,31 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                                 runSpacing: 8,
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 6),
                                     decoration: BoxDecoration(
-                                      color: Colors.purple.withOpacity(0.1),
+                                      color:
+                                          Colors.purple.withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: Text(
                                       'المناسبة: $currentOccasion',
-                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
                                     ),
                                   ),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 6),
                                     decoration: BoxDecoration(
-                                      color: Colors.green.withOpacity(0.1),
+                                      color:
+                                          Colors.green.withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: Text(
                                       'النوع: $currentType',
-                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
                                     ),
                                   ),
                                 ],
@@ -421,15 +445,16 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Message Display
                     ScaleTransition(
                       scale: _surpriseAnimation,
                       child: Card(
                         elevation: 6,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
@@ -437,7 +462,8 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                             children: [
                               const Text(
                                 'الرسالة المولدة ✨',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 12),
                               Container(
@@ -456,7 +482,7 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                                     hintText: 'الرسالة ستظهر هنا...',
                                   ),
                                   style: const TextStyle(
-                                    fontSize: 16, 
+                                    fontSize: 16,
                                     height: 1.5,
                                   ),
                                   textDirection: TextDirection.rtl,
@@ -467,15 +493,16 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Action Buttons
                     ScaleTransition(
                       scale: _surpriseAnimation,
                       child: Card(
                         elevation: 4,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
@@ -483,7 +510,8 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                             children: [
                               const Text(
                                 'خيارات الإرسال والمشاركة',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 16),
                               Row(
@@ -496,8 +524,11 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.blue,
                                         foregroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8)),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 12),
                                       ),
                                     ),
                                   ),
@@ -510,8 +541,11 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.orange,
                                         foregroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8)),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 12),
                                       ),
                                     ),
                                   ),
@@ -522,13 +556,19 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
                                   onPressed: sendViaWhatsApp,
-                                  icon: const Icon(Icons.message, color: Colors.white),
-                                  label: const Text('أرسل عبر واتساب', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                  icon: const Icon(Icons.message,
+                                      color: Colors.white),
+                                  label: const Text('أرسل عبر واتساب',
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold)),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF25D366),
                                     foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8)),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 16),
                                     elevation: 4,
                                   ),
                                 ),
@@ -538,9 +578,9 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Generate Another Button
                     ScaleTransition(
                       scale: _surpriseAnimation,
@@ -555,21 +595,24 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                           label: const Text('🎲 جرب مرة أخرى!'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.purple,
-                            side: const BorderSide(color: Colors.purple, width: 2),
+                            side: const BorderSide(
+                                color: Colors.purple, width: 2),
                             padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8)),
                           ),
                         ),
                       ),
                     ),
                   ],
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Tips Card
                   Card(
                     elevation: 2,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
@@ -577,11 +620,13 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.lightbulb_outline, color: Colors.amber),
+                              const Icon(Icons.lightbulb_outline,
+                                  color: Colors.amber),
                               const SizedBox(width: 8),
                               const Text(
                                 'نصائح للحصول على أفضل النتائج',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
