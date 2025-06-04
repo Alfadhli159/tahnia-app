@@ -26,6 +26,12 @@
   },
   "greetings": {
     "send_greeting": "إرسال رسالة",
+    "smart_message": "الذكية",
+    "classified_message": "المصنفة",
+    "auto_reply": "الرد التلقائي",
+    "scheduled_messages": "المجدولة",
+    "templates": "القالب",
+    "settings": "الإعدادات",
     "message_type": "نوع الرسالة",
     "select_message_type": "اختر نوع الرسالة",
     "occasion_type": "نوع المناسبة",

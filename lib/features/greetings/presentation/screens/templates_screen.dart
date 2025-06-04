@@ -4,7 +4,7 @@ import 'package:tahania_app/features/greetings/domain/models/message_template.da
 import 'package:uuid/uuid.dart';
 
 class TemplatesScreen extends StatefulWidget {
-  const TemplatesScreen({Key? key}) : super(key: key);
+  const TemplatesScreen({super.key});
 
   @override
   State<TemplatesScreen> createState() => _TemplatesScreenState();
@@ -59,8 +59,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(
         title: const Text('قوالب الرسائل'),
         actions: [
@@ -181,7 +180,6 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
         child: const Icon(Icons.add),
       ),
     );
-  }
 
   Widget _buildCategoryChip(String category) {
     final isSelected = _selectedCategory == category;
@@ -199,8 +197,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
     );
   }
 
-  Widget _buildTemplateCard(MessageTemplate template) {
-    return Card(
+  Widget _buildTemplateCard(MessageTemplate template) => Card(
       key: ValueKey(template.id),
       margin: const EdgeInsets.only(bottom: 16),
       child: InkWell(
@@ -268,7 +265,6 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
         ),
       ),
     );
-  }
 
   void _showFilterDialog() {
     showDialog(
@@ -341,7 +337,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
     final nameController = TextEditingController(text: template?.name);
     final contentController = TextEditingController(text: template?.content);
     String selectedCategory = template?.category ?? 'أخرى';
-    List<String> selectedTags = template?.tags ?? [];
+    final List<String> selectedTags = template?.tags ?? [];
     bool isFavorite = template?.isFavorite ?? false;
 
     showDialog(

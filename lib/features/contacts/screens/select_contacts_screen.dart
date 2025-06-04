@@ -61,15 +61,13 @@ class _SelectContactsScreenState extends State<SelectContactsScreen> {
   }
 
   // Optimized contact fetching - only get name and phone numbers
-  static Future<List<Contact>> _fetchContactsOptimized(_) async {
-    return await FlutterContacts.getContacts(
+  static Future<List<Contact>> _fetchContactsOptimized(_) async => await FlutterContacts.getContacts(
       withProperties: true,
       withThumbnail: true,
       withPhoto: true,
       withGroups: true,
       withAccounts: true,
     );
-  }
 
   void filterContacts(String keyword) {
     if (keyword.isEmpty) {
@@ -109,8 +107,7 @@ class _SelectContactsScreenState extends State<SelectContactsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Directionality(
+  Widget build(BuildContext context) => Directionality(
       textDirection: TextDirection.rtl,
       child: Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -305,7 +302,6 @@ class _SelectContactsScreenState extends State<SelectContactsScreen> {
         ),
       ),
     );
-  }
 
   @override
   void dispose() {

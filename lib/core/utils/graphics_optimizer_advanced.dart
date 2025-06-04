@@ -51,8 +51,7 @@ class GraphicsOptimizerAdvanced {
     BoxFit fit = BoxFit.cover,
     Widget? placeholder,
     Widget? errorWidget,
-  }) {
-    return RepaintBoundary(
+  }) => RepaintBoundary(
       child: CachedNetworkImage(
         imageUrl: imageUrl,
         width: width,
@@ -64,7 +63,6 @@ class GraphicsOptimizerAdvanced {
             errorWidget ?? const Icon(Icons.error),
       ),
     );
-  }
 
   dynamic _getCachedImage(String imageUrl) {
     if (!_cachedImages.containsKey(imageUrl)) return null;
@@ -95,9 +93,7 @@ class GraphicsOptimizerAdvanced {
   void _cleanupImages() {
     final now = DateTime.now();
 
-    final entriesToRemove = _imageAccessTimes.entries.where((entry) {
-      return now.difference(entry.value) > _imageCacheDuration;
-    }).toList();
+    final entriesToRemove = _imageAccessTimes.entries.where((entry) => now.difference(entry.value) > _imageCacheDuration).toList();
 
     for (var entry in entriesToRemove) {
       _removeCachedImage(entry.key);

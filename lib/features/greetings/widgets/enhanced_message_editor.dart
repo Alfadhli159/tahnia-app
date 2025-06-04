@@ -123,8 +123,7 @@ class _EnhancedMessageEditorState extends State<EnhancedMessageEditor>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
+  Widget build(BuildContext context) => AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
         return Transform.scale(
@@ -170,10 +169,8 @@ class _EnhancedMessageEditorState extends State<EnhancedMessageEditor>
         );
       },
     );
-  }
 
-  Widget _buildEditorHeader() {
-    return Container(
+  Widget _buildEditorHeader() => Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).primaryColor.withOpacity(0.05),
@@ -242,10 +239,8 @@ class _EnhancedMessageEditorState extends State<EnhancedMessageEditor>
         ],
       ),
     );
-  }
 
-  Widget _buildTextEditor() {
-    return Padding(
+  Widget _buildTextEditor() => Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -303,10 +298,8 @@ class _EnhancedMessageEditorState extends State<EnhancedMessageEditor>
         ],
       ),
     );
-  }
 
-  Widget _buildBottomToolbar() {
-    return Container(
+  Widget _buildBottomToolbar() => Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.grey[50],
@@ -357,7 +350,6 @@ class _EnhancedMessageEditorState extends State<EnhancedMessageEditor>
         ],
       ),
     );
-  }
 
   int _getWordCount() {
     if (widget.controller.text.isEmpty) return 0;

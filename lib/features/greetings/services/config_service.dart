@@ -15,7 +15,7 @@ class ConfigService {
     if (_isInitialized) return;
 
     try {
-      await dotenv.load(fileName: ".env");
+      await dotenv.load();
       _isInitialized = true;
     } catch (e) {
       // If .env file doesn't exist, continue without it

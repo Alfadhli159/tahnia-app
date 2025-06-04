@@ -58,8 +58,7 @@ class _SelectRecipientsScreenState extends State<SelectRecipientsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(title: const Text('اختر المستلمين')),
       body: Column(
         children: [
@@ -156,7 +155,6 @@ class _SelectRecipientsScreenState extends State<SelectRecipientsScreen> {
         ],
       ),
     );
-  }
 
   @override
   void dispose() {

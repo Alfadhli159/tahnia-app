@@ -16,8 +16,7 @@ class LazyLoading {
     required String key,
     Widget? loadingWidget,
     Widget? errorWidget,
-  }) {
-    return FutureBuilder<bool>(
+  }) => FutureBuilder<bool>(
       future: _loadData(key),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -35,7 +34,6 @@ class LazyLoading {
         );
       },
     );
-  }
 
   Future<bool> _loadData(String key) async {
     if (_loadingStates[key] == true) return true;
@@ -61,7 +59,9 @@ class LazyLoading {
   }
 
   void dispose() {
-    _loadingTimers.values.forEach((timer) => timer.cancel());
+    for (var timer in _loadingTimers.values) {
+      timer.cancel();
+    }
     _loadingTimers.clear();
     _loadingStates.clear();
   }

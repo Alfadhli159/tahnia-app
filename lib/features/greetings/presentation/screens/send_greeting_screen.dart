@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class SendGreetingScreen extends StatefulWidget {
-  const SendGreetingScreen({Key? key}) : super(key: key);
+  const SendGreetingScreen({super.key});
 
   @override
   State<SendGreetingScreen> createState() => _SendGreetingScreenState();
@@ -55,7 +55,7 @@ class _SendGreetingScreenState extends State<SendGreetingScreen> {
     Future.delayed(const Duration(seconds: 1), () {
       setState(() {
         _generatedGreeting =
-            'تهنئة ${_selectedOccasion}!\nإلى: ${_recipientController.text}\nمن: ${_senderController.text}\n${_useAI ? '(توليد بالذكاء الاصطناعي)' : ''}';
+            'تهنئة $_selectedOccasion!\nإلى: ${_recipientController.text}\nمن: ${_senderController.text}\n${_useAI ? '(توليد بالذكاء الاصطناعي)' : ''}';
         _isLoading = false;
       });
     });
@@ -115,12 +115,10 @@ class _SendGreetingScreenState extends State<SendGreetingScreen> {
                   labelText: 'المناسبة',
                   border: OutlineInputBorder(),
                 ),
-                items: _occasions.map((occasion) {
-                  return DropdownMenuItem(
+                items: _occasions.map((occasion) => DropdownMenuItem(
                     value: occasion,
                     child: Text(occasion),
-                  );
-                }).toList(),
+                  )).toList(),
                 onChanged: (value) {
                   setState(() {
                     _selectedOccasion = value!;

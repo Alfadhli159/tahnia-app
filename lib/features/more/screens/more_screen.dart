@@ -38,8 +38,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Directionality(
+  Widget build(BuildContext context) => Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
@@ -106,5 +105,4 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
-  }
 }

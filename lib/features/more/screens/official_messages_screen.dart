@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class OfficialMessagesScreen extends StatefulWidget {
-  const OfficialMessagesScreen({Key? key}) : super(key: key);
+  const OfficialMessagesScreen({super.key});
 
   @override
   State<OfficialMessagesScreen> createState() => _OfficialMessagesScreenState();
@@ -105,7 +105,6 @@ class _OfficialMessagesScreenState extends State<OfficialMessagesScreen> {
               ),
               items: [
                 const DropdownMenuItem<String>(
-                  value: null,
                   child: Text('الكل'),
                 ),
                 ..._categories.map((category) => DropdownMenuItem<String>(

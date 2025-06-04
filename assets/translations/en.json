@@ -26,6 +26,12 @@
   },
   "greetings": {
     "send_greeting": "Send Greeting",
+    "smart_message": "Smart",
+    "classified_message": "Classified",
+    "auto_reply": "Auto Reply",
+    "scheduled_messages": "Scheduled",
+    "templates": "Template",
+    "settings": "Settings",
     "message_type": "Message Type",
     "select_message_type": "Select Message Type",
     "occasion_type": "Occasion Type",

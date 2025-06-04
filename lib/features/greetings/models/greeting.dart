@@ -31,8 +31,7 @@ class Greeting {
     required String provider,
     String? category,
     List<String>? recipientIds,
-  }) {
-    return Greeting(
+  }) => Greeting(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       content: content,
       category: category ?? 'ai_generated',
@@ -41,15 +40,13 @@ class Greeting {
       provider: provider,
       isGenerated: true,
     );
-  }
 
   /// Constructor for fallback greetings
   factory Greeting.fallback({
     required String content,
     String? category,
     List<String>? recipientIds,
-  }) {
-    return Greeting(
+  }) => Greeting(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       content: content,
       category: category ?? 'fallback',
@@ -58,10 +55,8 @@ class Greeting {
       provider: 'fallback',
       isGenerated: false,
     );
-  }
 
-  factory Greeting.fromJson(Map<String, dynamic> json) {
-    return Greeting(
+  factory Greeting.fromJson(Map<String, dynamic> json) => Greeting(
       id: json['id'] as String,
       content: json['content'] as String,
       category: json['category'] as String,
@@ -76,10 +71,8 @@ class Greeting {
       provider: json['provider'] as String?,
       isGenerated: json['isGenerated'] as bool? ?? false,
     );
-  }
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'id': id,
       'content': content,
       'category': category,
@@ -92,7 +85,6 @@ class Greeting {
       'provider': provider,
       'isGenerated': isGenerated,
     };
-  }
 
   Greeting copyWith({
     String? id,
@@ -106,8 +98,7 @@ class Greeting {
     Map<String, dynamic>? metadata,
     String? provider,
     bool? isGenerated,
-  }) {
-    return Greeting(
+  }) => Greeting(
       id: id ?? this.id,
       content: content ?? this.content,
       category: category ?? this.category,
@@ -120,5 +111,4 @@ class Greeting {
       provider: provider ?? this.provider,
       isGenerated: isGenerated ?? this.isGenerated,
     );
-  }
 }

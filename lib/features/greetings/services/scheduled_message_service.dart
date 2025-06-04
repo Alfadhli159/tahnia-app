@@ -24,20 +24,14 @@ class ScheduledMessageService {
         messagesNotifier.value.where((m) => m.id != id).toList();
   }
 
-  static List<ScheduledMessage> searchMessages(String query) {
-    return messagesNotifier.value
+  static List<ScheduledMessage> searchMessages(String query) => messagesNotifier.value
         .where(
             (m) => m.content.contains(query) || m.recipientName.contains(query))
         .toList();
-  }
 
-  static List<ScheduledMessage> filterMessages() {
-    return messagesNotifier.value;
-  }
+  static List<ScheduledMessage> filterMessages() => messagesNotifier.value;
 
-  static List<ScheduledMessage> sortMessages() {
-    return messagesNotifier.value;
-  }
+  static List<ScheduledMessage> sortMessages() => messagesNotifier.value;
 
   static void toggleMessage(String id, bool enabled) {
     messagesNotifier.value = messagesNotifier.value.map((m) {

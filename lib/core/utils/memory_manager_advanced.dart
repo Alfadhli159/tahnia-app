@@ -34,9 +34,7 @@ class MemoryManagerAdvanced {
     }
   }
 
-  dynamic getCachedValue(String key) {
-    return _memoryCache[key];
-  }
+  dynamic getCachedValue(String key) => _memoryCache[key];
 
   void removeValue(String key) {
     _memoryCache.remove(key);
@@ -48,9 +46,7 @@ class MemoryManagerAdvanced {
     _memorySizes.clear();
   }
 
-  int _calculateMemorySize() {
-    return _memorySizes.values.fold(0, (sum, size) => sum + size);
-  }
+  int _calculateMemorySize() => _memorySizes.values.fold(0, (sum, size) => sum + size);
 
   void _cleanupMemory() {
     while (_calculateMemorySize() > _maxMemorySize && _memoryCache.isNotEmpty) {
@@ -66,13 +62,11 @@ class MemoryManagerAdvanced {
     });
   }
 
-  Map<String, dynamic> _getMemoryInfo() {
-    return {
+  Map<String, dynamic> _getMemoryInfo() => {
       'total': _calculateMemorySize(),
       'items': _memoryCache.length,
       'max': _maxMemorySize,
     };
-  }
 
   void dispose() {
     clearCache();
@@ -158,9 +152,7 @@ class _LruCache<K, V> implements Map<K, V> {
   Iterable<MapEntry<K, V>> get entries => _cache.entries;
 
   @override
-  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> Function(K key, V value) convert) {
-    return _cache.map(convert);
-  }
+  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> Function(K key, V value) convert) => _cache.map(convert);
 
   @override
   V putIfAbsent(K key, V Function() ifAbsent) {
@@ -175,7 +167,7 @@ class _LruCache<K, V> implements Map<K, V> {
   @override
   V update(K key, V Function(V value) update, {V Function()? ifAbsent}) {
     if (containsKey(key)) {
-      final value = update(this[key]!);
+      final value = update(this[key] as V);
       this[key] = value;
       return value;
     }

@@ -12,13 +12,13 @@ class FallbackGenerator {
     String? purpose,
   }) {
     // استخدام المعاملات المرسلة أو تحليل النص
-    String type = messageType ?? _analyzeMessageType(prompt);
-    String occasionText = occasion ?? _analyzeOccasion(prompt);
-    String purposeText = purpose ?? _analyzePurpose(prompt);
+    final String type = messageType ?? _analyzeMessageType(prompt);
+    final String occasionText = occasion ?? _analyzeOccasion(prompt);
+    final String purposeText = purpose ?? _analyzePurpose(prompt);
     
     // اسم المرسل والمستلم
-    String sender = senderName ?? '';
-    String recipient = recipientName ?? 'المستلم الكريم';
+    final String sender = senderName ?? '';
+    final String recipient = recipientName ?? 'المستلم الكريم';
 
     // اختيار قالب مناسب حسب النوع والمناسبة والغرض
     String greeting = _selectAppropriateGreeting(type, occasionText, purposeText);
@@ -109,13 +109,11 @@ class FallbackGenerator {
     return _getDefaultTemplates()[_random.nextInt(_getDefaultTemplates().length)];
   }
 
-  static List<String> _getCondolenceTemplates() {
-    return [
+  static List<String> _getCondolenceTemplates() => [
       'السلام عليكم ورحمة الله وبركاته\n\n{recipient}\n\nإنا لله وإنا إليه راجعون، تلقيت نبأ الوفاة بحزن بالغ، وأتقدم إليكم بأصدق عبارات المواساة والعزاء.\n\nأسأل الله العلي القدير أن يتغمد الفقيد بواسع رحمته ومغفرته، وأن يسكنه فسيح جناته، وأن يلهمكم الصبر والسلوان.\n\nإن الموت حق على كل نفس، وما نحن إلا في دار ممر إلى دار مقر، فاصبروا واحتسبوا الأجر عند الله.',
       'بسم الله الرحمن الرحيم\n\n{recipient}\n\nبقلوب مؤمنة بقضاء الله وقدره، نتقدم إليكم بأحر التعازي وأصدق المواساة في فقيدكم الغالي.\n\nنسأل الله أن يرحم الفقيد ويغفر له، وأن يسكنه الفردوس الأعلى، وأن يصبركم ويقويكم على هذا المصاب الجلل.\n\nتذكروا أن الصبر مفتاح الفرج، وأن الله مع الصابرين.',
       'السلام عليكم ورحمة الله وبركاته\n\n{recipient}\n\nبمشاعر الحزن والأسى، تلقينا نبأ الوفاة، ونتقدم إليكم بخالص التعازي وصادق المواساة.\n\nندعو الله أن يرحم الفقيد ويغفر له، وأن يجعل قبره روضة من رياض الجنة، وأن يعوضكم خيراً ويصبركم على هذا الفراق.',
     ];
-  }
 
   static List<String> _getTemplatesByTypeAndOccasion(String type, String occasion) {
     final templates = <String, Map<String, List<String>>>{
@@ -149,16 +147,12 @@ class FallbackGenerator {
     return [];
   }
 
-  static List<String> _getDefaultTemplates() {
-    return [
+  static List<String> _getDefaultTemplates() => [
       'مع خالص التحية والتقدير\n\n{recipient}\n\nأتقدم إليكم بأطيب التهاني وأجمل الأماني بمناسبة {occasion}.\n\nأسأل الله أن يديم عليكم الفرح والسعادة، وأن يبارك لكم في كل خطوة.\n\nتمنياتي لكم بالتوفيق والنجاح.',
       'السلام عليكم ورحمة الله وبركاته\n\n{recipient}\n\nبمناسبة {occasion}، أرسل لكم أحر التهاني وأطيب الأماني.\n\nبارك الله لكم وأتم عليكم بالخير والبركة.\n\nألف مبروك وعقبال المزيد من الأفراح.',
     ];
-  }
 
-  static String _replaceVariables(String greeting, String occasion, String recipient) {
-    return greeting
+  static String _replaceVariables(String greeting, String occasion, String recipient) => greeting
         .replaceAll('{occasion}', occasion.isNotEmpty ? occasion : 'المناسبة')
         .replaceAll('{recipient}', recipient.isNotEmpty ? recipient : 'المستلم الكريم');
-  }
 }

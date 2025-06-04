@@ -9,16 +9,14 @@ class AppLocalizations {
 
   AppLocalizations(this.locale);
 
-  static AppLocalizations of(BuildContext context) {
-    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
-  }
+  static AppLocalizations of(BuildContext context) => Localizations.of<AppLocalizations>(context, AppLocalizations)!;
 
   static const LocalizationsDelegate<AppLocalizations> delegate =
       _AppLocalizationsDelegate();
 
   Future<bool> load() async {
     try {
-      String jsonString = await rootBundle.loadString(
+      final String jsonString = await rootBundle.loadString(
         'assets/translations/${locale.languageCode}.json'
       );
       _jsonData = json.decode(jsonString);
@@ -125,9 +123,7 @@ class AppLocalizations {
   String get about => translate('settings.about');
 
   // التحقق من وجود الترجمة
-  bool hasTranslation(String key) {
-    return _getTranslation(key) != key;
-  }
+  bool hasTranslation(String key) => _getTranslation(key) != key;
 
   // الحصول على جميع المفاتيح المتاحة
   List<String> get availableKeys => _flattenedStrings.keys.toList();
@@ -137,13 +133,11 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   const _AppLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) {
-    return ['ar', 'en'].contains(locale.languageCode);
-  }
+  bool isSupported(Locale locale) => ['ar', 'en'].contains(locale.languageCode);
 
   @override
   Future<AppLocalizations> load(Locale locale) async {
-    AppLocalizations localizations = AppLocalizations(locale);
+    final AppLocalizations localizations = AppLocalizations(locale);
     await localizations.load();
     return localizations;
   }
@@ -154,13 +148,9 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
 
 // مساعد للترجمة السريعة
 class L10n {
-  static String of(BuildContext context, String key, {Map<String, String>? params}) {
-    return AppLocalizations.of(context).translate(key, params: params);
-  }
+  static String of(BuildContext context, String key, {Map<String, String>? params}) => AppLocalizations.of(context).translate(key, params: params);
   
-  static bool hasTranslation(BuildContext context, String key) {
-    return AppLocalizations.of(context).hasTranslation(key);
-  }
+  static bool hasTranslation(BuildContext context, String key) => AppLocalizations.of(context).hasTranslation(key);
 }
 
 // ثوابت الترجمة

@@ -2,35 +2,35 @@ import 'package:tahania_app/features/greetings/domain/models/sticker.dart';
 
 class StickerService {
   static final List<Sticker> _stickers = [
-    Sticker(
+    const Sticker(
       id: 'heart_1',
       name: 'قلب أحمر',
       path: 'assets/stickers/heart_red.png',
       category: 'love',
       tags: ['حب', 'قلب', 'رومانسي'],
     ),
-    Sticker(
+    const Sticker(
       id: 'celebration_1',
       name: 'احتفال',
       path: 'assets/stickers/celebration.png',
       category: 'celebration',
       tags: ['احتفال', 'فرح', 'مناسبة'],
     ),
-    Sticker(
+    const Sticker(
       id: 'flower_1',
       name: 'وردة',
       path: 'assets/stickers/flower.png',
       category: 'nature',
       tags: ['وردة', 'زهرة', 'طبيعة'],
     ),
-    Sticker(
+    const Sticker(
       id: 'star_1',
       name: 'نجمة',
       path: 'assets/stickers/star.png',
       category: 'decoration',
       tags: ['نجمة', 'تزيين', 'لامع'],
     ),
-    Sticker(
+    const Sticker(
       id: 'gift_1',
       name: 'هدية',
       path: 'assets/stickers/gift.png',
@@ -40,22 +40,16 @@ class StickerService {
   ];
 
   /// الحصول على جميع الملصقات
-  static List<Sticker> getAllStickers() {
-    return _stickers;
-  }
+  static List<Sticker> getAllStickers() => _stickers;
 
   /// الحصول على الملصقات حسب الفئة
-  static List<Sticker> getStickersByCategory(String category) {
-    return _stickers.where((sticker) => sticker.category == category).toList();
-  }
+  static List<Sticker> getStickersByCategory(String category) => _stickers.where((sticker) => sticker.category == category).toList();
 
   /// البحث في الملصقات
   static List<Sticker> searchStickers(String query) {
     final lowercaseQuery = query.toLowerCase();
-    return _stickers.where((sticker) {
-      return sticker.name.toLowerCase().contains(lowercaseQuery) ||
-          sticker.tags.any((tag) => tag.toLowerCase().contains(lowercaseQuery));
-    }).toList();
+    return _stickers.where((sticker) => sticker.name.toLowerCase().contains(lowercaseQuery) ||
+          sticker.tags.any((tag) => tag.toLowerCase().contains(lowercaseQuery))).toList();
   }
 
   /// الحصول على ملصق بالمعرف
@@ -68,13 +62,10 @@ class StickerService {
   }
 
   /// الحصول على فئات الملصقات
-  static List<String> getCategories() {
-    return _stickers.map((sticker) => sticker.category).toSet().toList();
-  }
+  static List<String> getCategories() => _stickers.map((sticker) => sticker.category).toSet().toList();
 
   /// الحصول على ملصق افتراضي
-  static Sticker getDefaultSticker() {
-    return _stickers.isNotEmpty
+  static Sticker getDefaultSticker() => _stickers.isNotEmpty
         ? _stickers.first
         : const Sticker(
             id: 'default',
@@ -82,5 +73,4 @@ class StickerService {
             path: 'assets/stickers/default.png',
             category: 'default',
           );
-  }
 }

@@ -38,10 +38,8 @@ class _ContactSelectorState extends State<ContactSelector> {
   void _filterContacts() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      _filteredContacts = widget.contacts.where((contact) {
-        return contact.displayName.toLowerCase().contains(query) ||
-            contact.phones.any((phone) => phone.number.contains(query));
-      }).toList();
+      _filteredContacts = widget.contacts.where((contact) => contact.displayName.toLowerCase().contains(query) ||
+            contact.phones.any((phone) => phone.number.contains(query))).toList();
     });
   }
 
@@ -199,7 +197,7 @@ class _ContactSelectorState extends State<ContactSelector> {
                         ),
                       ),
                       controlAffinity: ListTileControlAffinity.leading,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                     ),
                   );
                 },

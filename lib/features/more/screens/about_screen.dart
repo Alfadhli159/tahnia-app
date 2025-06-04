@@ -4,8 +4,7 @@ class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Directionality(
+  Widget build(BuildContext context) => Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
@@ -25,5 +24,4 @@ class AboutScreen extends StatelessWidget {
         ),
       ),
     );
-  }
 }

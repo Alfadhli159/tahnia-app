@@ -24,8 +24,7 @@ class OptimizedListView extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return PerformanceUtils.buildWithPerformance(
+  Widget build(BuildContext context) => PerformanceUtils.buildWithPerformance(
       child: separator != null
           ? ListView.separated(
               key: const ValueKey('optimized_list'),
@@ -47,5 +46,4 @@ class OptimizedListView extends StatelessWidget {
             ),
       maintainState: true,
     );
-  }
 }

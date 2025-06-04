@@ -14,8 +14,7 @@ class GreetingTypeSelector extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
+  Widget build(BuildContext context) => Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -68,5 +67,4 @@ class GreetingTypeSelector extends StatelessWidget {
         ],
       ),
     );
-  }
 }

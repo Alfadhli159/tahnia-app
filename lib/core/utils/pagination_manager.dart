@@ -6,7 +6,7 @@ class PaginationManager<T> {
   int _currentPage = 0;
   bool _isLoading = false;
   bool _hasMore = true;
-  List<T> _items = [];
+  final List<T> _items = [];
   final Future<List<T>> Function(int page, int pageSize) _fetchData;
 
   PaginationManager({

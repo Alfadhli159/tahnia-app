@@ -1,10 +1,10 @@
 // النسخة المحسنة لتطابق ثيم شاشة تسجيل الدخول مع زر Google مطابق
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
-import '../home/home_screen.dart';
+
+import '../../services/auth_service.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -33,35 +33,51 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
       return;
     }
+
     setState(() => loading = true);
+
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      await AuthService.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
+        displayName: _nameController.text.trim(),
       );
-      await FirebaseAuth.instance.currentUser?.sendEmailVerification();
+
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('✅ تم إرسال رابط التحقق إلى بريدك.'),
+        const SnackBar(
+          content:
+              Text('✅ تم إنشاء الحساب بنجاح! تم إرسال رابط التحقق إلى بريدك.'),
           backgroundColor: Colors.green,
         ),
       );
+
+      // Navigate to login screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
     } on FirebaseAuthException catch (e) {
-      String message = 'حدث خطأ أثناء التسجيل.';
+      final String message = AuthService.getErrorMessage(e);
+
       if (e.code == 'email-already-in-use') {
-        message = 'هذا البريد مسجّل مسبقًا.';
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const LoginScreen()),
         );
         return;
-      } else if (e.code == 'invalid-email') {
-        message = 'صيغة البريد غير صحيحة.';
-      } else if (e.code == 'weak-password') {
-        message = 'كلمة المرور ضعيفة. يجب أن تكون 6 خانات على الأقل.';
       }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message), backgroundColor: Colors.red),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('حدث خطأ غير متوقع: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       setState(() => loading = false);
@@ -69,32 +85,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _signInWithGoogle() async {
+    setState(() => loading = true);
+
     try {
-      final googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) return;
-      final googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-      await FirebaseAuth.instance.signInWithCredential(credential);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
-    } catch (_) {
+      final userCredential = await AuthService.signInWithGoogle();
+
+      if (userCredential == null) {
+        // User canceled the sign-in
+        setState(() => loading = false);
+        return;
+      }
+
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('فشل تسجيل الدخول باستخدام Google'),
+          content: Text('مرحبًا بك في تهنئة! 🎉'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // Navigation will be handled by AuthWrapper
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AuthService.getErrorMessage(e)),
           backgroundColor: Colors.red,
         ),
       );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('فشل تسجيل الدخول باستخدام Google: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() => loading = false);
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Directionality(
+  Widget build(BuildContext context) => Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -226,5 +258,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       ),
     );
-  }
 }

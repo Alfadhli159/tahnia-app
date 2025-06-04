@@ -109,33 +109,24 @@ class OfficialMessageService {
   };
 
   /// الحصول على الرسائل حسب الفئة
-  static List<OfficialMessage> getMessagesByCategory(MessageCategory category) {
-    return _messages[category] ?? [];
-  }
+  static List<OfficialMessage> getMessagesByCategory(MessageCategory category) => _messages[category] ?? [];
 
   /// الحصول على جميع الرسائل
-  static List<OfficialMessage> getAllMessages() {
-    return _messages.values.expand((messages) => messages).toList();
-  }
+  static List<OfficialMessage> getAllMessages() => _messages.values.expand((messages) => messages).toList();
 
   /// الحصول على الرسائل العاجلة
-  static List<OfficialMessage> getUrgentMessages() {
-    return getAllMessages().where((message) => message.isUrgent).toList();
-  }
+  static List<OfficialMessage> getUrgentMessages() => getAllMessages().where((message) => message.isUrgent).toList();
 
   /// الحصول على الرسائل حسب الكلمات المفتاحية
   static List<OfficialMessage> searchMessages(String query) {
     final lowercaseQuery = query.toLowerCase();
-    return getAllMessages().where((message) {
-      return message.title.toLowerCase().contains(lowercaseQuery) ||
+    return getAllMessages().where((message) => message.title.toLowerCase().contains(lowercaseQuery) ||
           message.content.toLowerCase().contains(lowercaseQuery) ||
-          message.tags.any((tag) => tag.toLowerCase().contains(lowercaseQuery));
-    }).toList();
+          message.tags.any((tag) => tag.toLowerCase().contains(lowercaseQuery))).toList();
   }
 
   /// الحصول على قائمة الفئات
-  static List<Map<String, dynamic>> getCategories() {
-    return [
+  static List<Map<String, dynamic>> getCategories() => [
       {
         'type': MessageCategory.health,
         'name': 'رسائل صحية',
@@ -179,5 +170,4 @@ class OfficialMessageService {
         'description': 'رسائل خاصة بالمواسم والمناسبات',
       },
     ];
-  }
 }

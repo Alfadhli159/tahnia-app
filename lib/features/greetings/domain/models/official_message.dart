@@ -36,8 +36,7 @@ class OfficialMessage {
     String? source,
     bool? isUrgent,
     List<String>? tags,
-  }) {
-    return OfficialMessage(
+  }) => OfficialMessage(
       id: id ?? this.id,
       title: title ?? this.title,
       content: content ?? this.content,
@@ -49,5 +48,4 @@ class OfficialMessage {
       isUrgent: isUrgent ?? this.isUrgent,
       tags: tags ?? this.tags,
     );
-  }
 }

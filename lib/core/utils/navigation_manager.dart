@@ -33,8 +33,7 @@ class NavigationManager {
     required BuildContext context,
     required Widget screen,
     bool replace = false,
-  }) {
-    return Navigator.push(
+  }) => Navigator.push(
       context,
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => screen,
@@ -52,14 +51,12 @@ class NavigationManager {
         transitionDuration: AppConstants.defaultAnimationDuration,
       ),
     );
-  }
 
   static Future<T?> navigateWithSlide<T>({
     required BuildContext context,
     required Widget screen,
     bool replace = false,
-  }) {
-    return Navigator.push(
+  }) => Navigator.push(
       context,
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => screen,
@@ -80,7 +77,6 @@ class NavigationManager {
         transitionDuration: AppConstants.defaultAnimationDuration,
       ),
     );
-  }
 
   static void pop(BuildContext context, [result]) {
     Navigator.pop(context, result);

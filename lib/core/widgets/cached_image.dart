@@ -10,14 +10,14 @@ class CachedImage extends StatelessWidget {
   final Widget? errorWidget;
 
   const CachedImage({
-    Key? key,
+    super.key,
     required this.imageUrl,
     this.width,
     this.height,
     this.fit = BoxFit.cover,
     this.placeholder,
     this.errorWidget,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -52,7 +52,7 @@ class _HierarchicalMessageSelectorState
     _initializeAnimations();
 
     // تأخير تحميل التصنيفات لتحسين وقت البدء
-    Future.microtask(() => _loadCategories());
+    Future.microtask(_loadCategories);
   }
 
   void _initializeAnimations() {
@@ -209,8 +209,7 @@ class _HierarchicalMessageSelectorState
     );
   }
 
-  Widget _buildSectionHeader() {
-    return Container(
+  Widget _buildSectionHeader() => Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -268,10 +267,8 @@ class _HierarchicalMessageSelectorState
         ],
       ),
     );
-  }
 
-  Widget _buildMessageTypeSelector() {
-    return _buildSelectorCard(
+  Widget _buildMessageTypeSelector() => _buildSelectorCard(
       title: '🔷 نوع الرسالة',
       subtitle: 'اختر الفئة العليا للرسالة',
       value: widget.selectedMessageType,
@@ -288,10 +285,8 @@ class _HierarchicalMessageSelectorState
       itemBuilder: (item) => _buildMessageTypeItem(item),
       level: 1,
     );
-  }
 
-  Widget _buildOccasionSelector() {
-    return _buildSelectorCard(
+  Widget _buildOccasionSelector() => _buildSelectorCard(
       title: '🔶 تصنيف المناسبة',
       subtitle: 'اختر المناسبة المحددة',
       value: widget.selectedOccasion,
@@ -306,10 +301,8 @@ class _HierarchicalMessageSelectorState
       },
       level: 2,
     );
-  }
 
-  Widget _buildPurposeSelector() {
-    return _buildSelectorCard(
+  Widget _buildPurposeSelector() => _buildSelectorCard(
       title: '🟢 غرض الرسالة',
       subtitle: 'اختر الهدف من الرسالة',
       value: widget.selectedPurpose,
@@ -318,7 +311,6 @@ class _HierarchicalMessageSelectorState
       onChanged: widget.onPurposeChanged,
       level: 3,
     );
-  }
 
   Widget _buildSelectorCard({
     required String title,
@@ -406,8 +398,7 @@ class _HierarchicalMessageSelectorState
                 fontSize: 13,
               ),
             ),
-            items: items.map((item) {
-              return DropdownMenuItem(
+            items: items.map((item) => DropdownMenuItem(
                 value: item,
                 child: Container(
                   constraints: const BoxConstraints(maxWidth: 200),
@@ -418,8 +409,7 @@ class _HierarchicalMessageSelectorState
                         overflow: TextOverflow.ellipsis,
                       ),
                 ),
-              );
-            }).toList(),
+              )).toList(),
             onChanged: isEnabled ? onChanged : null,
             decoration: InputDecoration(
               border: OutlineInputBorder(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AutoReplyScreen extends StatefulWidget {
-  const AutoReplyScreen({Key? key}) : super(key: key);
+  const AutoReplyScreen({super.key});
 
   @override
   State<AutoReplyScreen> createState() => _AutoReplyScreenState();

@@ -111,7 +111,7 @@ class AIService {
           headers: headers,
           body: jsonEncode(requestBody),
         )
-        .timeout(Duration(seconds: _timeoutSeconds));
+        .timeout(const Duration(seconds: _timeoutSeconds));
 
     _logger.d('📥 رمز الاستجابة: ${response.statusCode}');
 
@@ -120,13 +120,13 @@ class AIService {
 
       // التحقق من صحة البيانات المُستلمة
       if (!_isValidResponse(data)) {
-        throw AIServiceException('استجابة غير صالحة من الخدمة الذكية');
+        throw const AIServiceException('استجابة غير صالحة من الخدمة الذكية');
       }
 
       final content = data['choices'][0]['message']['content'] as String;
 
       if (content.trim().isEmpty) {
-        throw AIServiceException('محتوى فارغ من الخدمة الذكية');
+        throw const AIServiceException('محتوى فارغ من الخدمة الذكية');
       }
 
       return content.trim();
@@ -138,14 +138,12 @@ class AIService {
   }
 
   /// التحقق من صحة استجابة API
-  static bool _isValidResponse(Map<String, dynamic> data) {
-    return data.containsKey('choices') &&
+  static bool _isValidResponse(Map<String, dynamic> data) => data.containsKey('choices') &&
         data['choices'] is List &&
         (data['choices'] as List).isNotEmpty &&
         data['choices'][0] is Map &&
         (data['choices'][0] as Map).containsKey('message') &&
         (data['choices'][0]['message'] as Map).containsKey('content');
-  }
 
   /// توليد رسالة احتياطية
   static Greeting _generateFallbackGreeting(
@@ -232,7 +230,5 @@ class ServiceStatus {
   });
 
   @override
-  String toString() {
-    return 'ServiceStatus(openai: $openaiAvailable, openrouter: $openrouterAvailable, default: ${defaultProvider.name})';
-  }
+  String toString() => 'ServiceStatus(openai: $openaiAvailable, openrouter: $openrouterAvailable, default: ${defaultProvider.name})';
 }

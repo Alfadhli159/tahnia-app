@@ -7,7 +7,7 @@ import 'services/firebase_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Firebase using our service
   await FirebaseService.initialize();
 
@@ -19,11 +19,11 @@ class TahniaApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-      title: 'تطبيق تهنئة',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      navigatorKey: NavigationService.navigatorKey,
-      initialRoute: AppRoutes.splash,
-      routes: AppRoutes.routes,
-    );
+        title: 'تطبيق تهنئة',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        navigatorKey: NavigationService.navigatorKey,
+        initialRoute: AppRoutes.splash, // Start with splash screen
+        routes: AppRoutes.routes,
+      );
 }

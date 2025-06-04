@@ -7,7 +7,7 @@ import 'package:tahania_app/services/template_service.dart';
 import 'package:intl/intl.dart';
 
 class ScheduledMessagesScreen extends StatefulWidget {
-  const ScheduledMessagesScreen({Key? key}) : super(key: key);
+  const ScheduledMessagesScreen({super.key});
 
   @override
   State<ScheduledMessagesScreen> createState() =>
@@ -158,8 +158,7 @@ class _ScheduledMessagesScreenState extends State<ScheduledMessagesScreen> {
     );
   }
 
-  Widget _buildMessageCard(ScheduledMessage message, ThemeData theme) {
-    return Card(
+  Widget _buildMessageCard(ScheduledMessage message, ThemeData theme) => Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -290,7 +289,6 @@ class _ScheduledMessagesScreenState extends State<ScheduledMessagesScreen> {
         ),
       ),
     );
-  }
 
   String _getRepeatPatternText(ScheduledMessage message) {
     if (message.repeatPattern == 'custom' && message.repeatDays != null) {
@@ -557,8 +555,7 @@ class _MessageDialogState extends State<_MessageDialog> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
+  Widget build(BuildContext context) => AlertDialog(
       title: Text(widget.message == null
           ? 'إضافة رسالة مجدولة'
           : 'تعديل الرسالة المجدولة'),
@@ -772,5 +769,4 @@ class _MessageDialogState extends State<_MessageDialog> {
         ),
       ],
     );
-  }
 }

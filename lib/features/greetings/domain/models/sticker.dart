@@ -33,8 +33,7 @@ class Sticker {
     String? category,
     bool? isAnimated,
     List<String>? tags,
-  }) {
-    return Sticker(
+  }) => Sticker(
       id: id ?? this.id,
       name: name ?? this.name,
       path: path ?? this.path,
@@ -42,5 +41,4 @@ class Sticker {
       isAnimated: isAnimated ?? this.isAnimated,
       tags: tags ?? this.tags,
     );
-  }
 }

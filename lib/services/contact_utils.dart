@@ -49,14 +49,12 @@ class ContactUtils {
   }
   
   /// فلترة جهات الاتصال الصالحة
-  static List<Contact> filterValidContacts(List<Contact> contacts) {
-    return contacts.where((contact) {
+  static List<Contact> filterValidContacts(List<Contact> contacts) => contacts.where((contact) {
       bool hasValidPhone = contact.phones.isNotEmpty && 
                          contact.phones.any((phone) => phone.number.trim().isNotEmpty);
       bool hasValidName = contact.displayName.isNotEmpty;
       return hasValidPhone && hasValidName;
     }).toList();
-  }
   
   /// ترتيب جهات الاتصال أبجدياً
   static List<Contact> sortContactsAlphabetically(List<Contact> contacts) {

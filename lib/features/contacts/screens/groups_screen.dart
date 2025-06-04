@@ -20,25 +20,21 @@ class ContactGroup {
     required this.createdAt,
   });
 
-  Map<String, dynamic> toMap() {
-    return {
+  Map<String, dynamic> toMap() => {
       'id': id,
       'name': name,
       'contactNames': contactNames,
       'phoneNumbers': phoneNumbers,
       'createdAt': createdAt.millisecondsSinceEpoch,
     };
-  }
 
-  factory ContactGroup.fromMap(Map<String, dynamic> map) {
-    return ContactGroup(
+  factory ContactGroup.fromMap(Map<String, dynamic> map) => ContactGroup(
       id: map['id'] ?? '',
       name: map['name'] ?? '',
       contactNames: List<String>.from(map['contactNames'] ?? []),
       phoneNumbers: List<String>.from(map['phoneNumbers'] ?? []),
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] ?? 0),
     );
-  }
 }
 
 class GroupsScreen extends StatefulWidget {
@@ -109,8 +105,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Directionality(
+  Widget build(BuildContext context) => Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
@@ -197,7 +192,6 @@ class _GroupsScreenState extends State<GroupsScreen> {
         ),
       ),
     );
-  }
 }
 
 class _CreateGroupDialog extends StatefulWidget {
@@ -257,8 +251,7 @@ class _CreateGroupDialogState extends State<_CreateGroupDialog> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Directionality(
+  Widget build(BuildContext context) => Directionality(
       textDirection: TextDirection.rtl,
       child: AlertDialog(
         title: const Text('إنشاء مجموعة جديدة'),
@@ -301,7 +294,6 @@ class _CreateGroupDialogState extends State<_CreateGroupDialog> {
         ],
       ),
     );
-  }
 
   @override
   void dispose() {
@@ -322,8 +314,7 @@ class _GroupDetailsDialog extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Directionality(
+  Widget build(BuildContext context) => Directionality(
       textDirection: TextDirection.rtl,
       child: AlertDialog(
         title: Text(group.name),
@@ -384,5 +375,4 @@ class _GroupDetailsDialog extends StatelessWidget {
         ],
       ),
     );
-  }
 }

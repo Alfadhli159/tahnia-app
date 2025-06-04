@@ -114,9 +114,7 @@ class _EnhancedContactSelectorState extends State<EnhancedContactSelector>
     widget.onContactsChanged(newSelection);
   }
 
-  bool _isContactSelected(Contact contact) {
-    return widget.selectedContacts.any((c) => c.id == contact.id);
-  }
+  bool _isContactSelected(Contact contact) => widget.selectedContacts.any((c) => c.id == contact.id);
 
   String _getContactPhone(Contact contact) {
     if (contact.phones.isNotEmpty) {
@@ -126,8 +124,7 @@ class _EnhancedContactSelectorState extends State<EnhancedContactSelector>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
+  Widget build(BuildContext context) => Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -161,10 +158,8 @@ class _EnhancedContactSelectorState extends State<EnhancedContactSelector>
         ],
       ),
     );
-  }
 
-  Widget _buildSectionHeader() {
-    return Container(
+  Widget _buildSectionHeader() => Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).primaryColor.withOpacity(0.05),
@@ -281,10 +276,8 @@ class _EnhancedContactSelectorState extends State<EnhancedContactSelector>
         ],
       ),
     );
-  }
 
-  Widget _buildSelectedContactsList() {
-    return Container(
+  Widget _buildSelectedContactsList() => Container(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -330,10 +323,8 @@ class _EnhancedContactSelectorState extends State<EnhancedContactSelector>
         ],
       ),
     );
-  }
 
-  Widget _buildSearchBar() {
-    return FadeTransition(
+  Widget _buildSearchBar() => FadeTransition(
       opacity: _fadeAnimation,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -360,10 +351,8 @@ class _EnhancedContactSelectorState extends State<EnhancedContactSelector>
         ),
       ),
     );
-  }
 
-  Widget _buildContactsList() {
-    return SizeTransition(
+  Widget _buildContactsList() => SizeTransition(
       sizeFactor: _expandAnimation,
       child: FadeTransition(
         opacity: _fadeAnimation,
@@ -429,10 +418,8 @@ class _EnhancedContactSelectorState extends State<EnhancedContactSelector>
         ),
       ),
     );
-  }
 
-  Widget _buildEmptyState() {
-    return Container(
+  Widget _buildEmptyState() => Container(
       padding: const EdgeInsets.all(32),
       child: Column(
         children: [
@@ -466,7 +453,6 @@ class _EnhancedContactSelectorState extends State<EnhancedContactSelector>
         ],
       ),
     );
-  }
 
   @override
   void dispose() {

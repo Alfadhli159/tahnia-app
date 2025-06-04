@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'dart:ui' as ui;
-import 'dart:typed_data';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class PosterGenerator {
   static Future<Uint8List?> generatePoster({

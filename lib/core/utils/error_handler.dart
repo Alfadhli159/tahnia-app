@@ -72,7 +72,5 @@ class ErrorInfo {
     this.userMessage,
   });
 
-  String get errorMessage {
-    return error.toString();
-  }
+  String get errorMessage => error.toString();
 }

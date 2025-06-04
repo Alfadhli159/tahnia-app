@@ -18,8 +18,7 @@ class OccasionSelector extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
+  Widget build(BuildContext context) => Column(
       children: [
         // نوع المناسبة
         Container(
@@ -120,5 +119,4 @@ class OccasionSelector extends StatelessWidget {
         ),
       ],
     );
-  }
 }

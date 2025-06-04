@@ -5,8 +5,7 @@ class AnalyticsScreen extends StatelessWidget {
   const AnalyticsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Directionality(
+  Widget build(BuildContext context) => Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
@@ -76,10 +75,8 @@ class AnalyticsScreen extends StatelessWidget {
         ),
       ),
     );
-  }
 
-  Widget _buildStatBox(String title, String value) {
-    return Container(
+  Widget _buildStatBox(String title, String value) => Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       decoration: BoxDecoration(
         color: Colors.teal[50],
@@ -101,5 +98,4 @@ class AnalyticsScreen extends StatelessWidget {
         ],
       ),
     );
-  }
 }

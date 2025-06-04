@@ -23,8 +23,7 @@ class AppContact {
     this.metadata,
   });
 
-  factory AppContact.fromJson(Map<String, dynamic> json) {
-    return AppContact(
+  factory AppContact.fromJson(Map<String, dynamic> json) => AppContact(
       id: json['id'] as String,
       name: json['name'] as String,
       phoneNumber: json['phoneNumber'] as String?,
@@ -38,10 +37,8 @@ class AppContact {
           : null,
       metadata: json['metadata'] as Map<String, dynamic>?,
     );
-  }
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'id': id,
       'name': name,
       'phoneNumber': phoneNumber,
@@ -53,7 +50,6 @@ class AppContact {
       'lastContacted': lastContacted?.toIso8601String(),
       'metadata': metadata,
     };
-  }
 
   AppContact copyWith({
     String? id,
@@ -66,8 +62,7 @@ class AppContact {
     DateTime? createdAt,
     DateTime? lastContacted,
     Map<String, dynamic>? metadata,
-  }) {
-    return AppContact(
+  }) => AppContact(
       id: id ?? this.id,
       name: name ?? this.name,
       phoneNumber: phoneNumber ?? this.phoneNumber,
@@ -79,5 +74,4 @@ class AppContact {
       lastContacted: lastContacted ?? this.lastContacted,
       metadata: metadata ?? this.metadata,
     );
-  }
 }

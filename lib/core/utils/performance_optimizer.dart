@@ -16,7 +16,7 @@ class PerformanceOptimizer {
     bool maintainState = true,
     bool enableRepaintBoundary = true,
   }) {
-    Widget optimizedWidget =
+    final Widget optimizedWidget =
         enableRepaintBoundary ? RepaintBoundary(child: child) : child;
 
     return maintainState
@@ -68,8 +68,7 @@ class PerformanceOptimizer {
     bool shrinkWrap = false,
     Axis scrollDirection = Axis.vertical,
     Widget? separator,
-  }) {
-    return SizedBox(
+  }) => SizedBox(
       width: width,
       height: height,
       child: ListView.separated(
@@ -82,7 +81,6 @@ class PerformanceOptimizer {
         separatorBuilder: (context, index) => separator ?? const SizedBox(),
       ),
     );
-  }
 
   void optimizeMemoryUsage() {
     // Clear image cache if it gets too large

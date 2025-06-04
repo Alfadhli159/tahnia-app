@@ -7,8 +7,7 @@ class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Directionality(
+  Widget build(BuildContext context) => Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
@@ -43,10 +42,8 @@ class MoreScreen extends StatelessWidget {
         ),
       ),
     );
-  }
 
-  Widget _buildOption(BuildContext context, IconData icon, String title, VoidCallback onTap) {
-    return Card(
+  Widget _buildOption(BuildContext context, IconData icon, String title, VoidCallback onTap) => Card(
       elevation: 2,
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: ListTile(
@@ -56,5 +53,4 @@ class MoreScreen extends StatelessWidget {
         onTap: onTap,
       ),
     );
-  }
 }

@@ -12,12 +12,10 @@ class GeneralSettings {
   GeneralSettings copyWith({
     bool? showWelcomeScreen,
     bool? enableAnalytics,
-  }) {
-    return GeneralSettings(
+  }) => GeneralSettings(
       showWelcomeScreen: showWelcomeScreen ?? this.showWelcomeScreen,
       enableAnalytics: enableAnalytics ?? this.enableAnalytics,
     );
-  }
 }
 
 class AppSettings {
@@ -25,9 +23,7 @@ class AppSettings {
 
   AppSettings({required this.general});
 
-  AppSettings copyWith({GeneralSettings? general}) {
-    return AppSettings(general: general ?? this.general);
-  }
+  AppSettings copyWith({GeneralSettings? general}) => AppSettings(general: general ?? this.general);
 }
 
 class SettingsService {

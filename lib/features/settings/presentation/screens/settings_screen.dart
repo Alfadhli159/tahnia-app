@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:tahania_app/services/settings_service.dart';
+import '../../../../services/auth_service.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -25,8 +26,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(
         title: const Text('الإعدادات'),
         actions: [
@@ -75,6 +75,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   padding: const EdgeInsets.all(16),
                   children: [
                     _buildGeneralSettings(settings),
+                    const SizedBox(height: 16),
+                    _buildAccountSettings(),
                   ],
                 ),
               ),
@@ -83,10 +85,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         },
       ),
     );
-  }
 
-  Widget _buildGeneralSettings(AppSettings settings) {
-    return _buildSection(
+  Widget _buildGeneralSettings(AppSettings settings) => _buildSection(
       title: 'إعدادات عامة',
       icon: Icons.settings,
       children: [
@@ -118,14 +118,144 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ],
     );
+
+  Widget _buildAccountSettings() => _buildSection(
+      title: 'إعدادات الحساب',
+      icon: Icons.account_circle,
+      children: [
+        ListTile(
+          leading: const Icon(Icons.person),
+          title: const Text('معلومات الحساب'),
+          subtitle: Text(AuthService.currentUser?.email ?? 'غير محدد'),
+          trailing: const Icon(Icons.arrow_forward_ios),
+          onTap: () {
+            // Navigate to account info screen
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.email),
+          title: const Text('حالة التحقق من البريد'),
+          subtitle: Text(
+            AuthService.isEmailVerified ? 'تم التحقق' : 'لم يتم التحقق',
+          ),
+          trailing: AuthService.isEmailVerified
+              ? const Icon(Icons.verified, color: Colors.green)
+              : TextButton(
+                  onPressed: () async {
+                    try {
+                      await AuthService.sendEmailVerification();
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('تم إرسال رابط التحقق'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    } catch (e) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('فشل إرسال رابط التحقق: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('إرسال رابط التحقق'),
+                ),
+        ),
+        const Divider(),
+        ListTile(
+          leading: const Icon(Icons.logout, color: Colors.red),
+          title:
+              const Text('تسجيل الخروج', style: TextStyle(color: Colors.red)),
+          onTap: () => _showSignOutDialog(),
+        ),
+        ListTile(
+          leading: const Icon(Icons.delete_forever, color: Colors.red),
+          title: const Text('حذف الحساب', style: TextStyle(color: Colors.red)),
+          onTap: () => _showDeleteAccountDialog(),
+        ),
+      ],
+    );
+
+  void _showSignOutDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+          title: const Text('تسجيل الخروج'),
+          content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('إلغاء'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                try {
+                  await AuthService.signOut();
+                  // Navigation will be handled by AuthWrapper
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('فشل تسجيل الخروج: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: const Text('تسجيل الخروج',
+                  style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        ),
+    );
+  }
+
+  void _showDeleteAccountDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+          title: const Text('حذف الحساب'),
+          content: const Text(
+            'هل أنت متأكد من رغبتك في حذف حسابك نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('إلغاء'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                try {
+                  await AuthService.deleteAccount();
+                  // Navigation will be handled by AuthWrapper
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('فشل حذف الحساب: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child:
+                  const Text('حذف الحساب', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        ),
+    );
   }
 
   Widget _buildSection({
     required String title,
     required IconData icon,
     required List<Widget> children,
-  }) {
-    return Card(
+  }) => Card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -147,5 +277,4 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
-  }
 }

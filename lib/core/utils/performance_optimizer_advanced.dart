@@ -20,7 +20,7 @@ class PerformanceOptimizerAdvanced {
     bool enableRepaintBoundary = true,
   }) {
     try {
-      Widget optimizedWidget =
+      final Widget optimizedWidget =
           enableRepaintBoundary ? RepaintBoundary(child: child) : child;
 
       return maintainState

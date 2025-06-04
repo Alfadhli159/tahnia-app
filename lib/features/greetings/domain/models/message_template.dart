@@ -28,8 +28,7 @@ class MessageTemplate {
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isFavorite,
-  }) {
-    return MessageTemplate(
+  }) => MessageTemplate(
       id: id ?? this.id,
       name: name ?? this.name,
       content: content ?? this.content,
@@ -39,5 +38,4 @@ class MessageTemplate {
       updatedAt: updatedAt ?? this.updatedAt,
       isFavorite: isFavorite ?? this.isFavorite,
     );
-  }
 }

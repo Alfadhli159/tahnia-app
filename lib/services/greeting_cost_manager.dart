@@ -69,14 +69,12 @@ class GreetingCostManager {
   }
 
   /// الحصول على إحصائيات الاستخدام
-  static Map<String, dynamic> getStats() {
-    return {
+  static Map<String, dynamic> getStats() => {
       'usage': _usageStats,
       'cost': _totalCost,
       'daily_ai_requests': _dailyAiRequests,
       'cache_hit_rate': _calculateCacheHitRate(),
     };
-  }
 
   /// حساب نسبة نجاح التخزين المؤقت
   static double _calculateCacheHitRate() {

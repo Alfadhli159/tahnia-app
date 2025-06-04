@@ -215,8 +215,7 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Directionality(
+  Widget build(BuildContext context) => Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
@@ -645,5 +644,4 @@ class _SurpriseMessageScreenState extends State<SurpriseMessageScreen>
         ),
       ),
     );
-  }
 }

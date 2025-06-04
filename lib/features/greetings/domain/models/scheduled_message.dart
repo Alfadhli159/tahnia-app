@@ -63,8 +63,7 @@ class ScheduledMessage {
     MessageSource? source,
     String? message,
     DateTime? createdAt,
-  }) {
-    return ScheduledMessage(
+  }) => ScheduledMessage(
       id: id ?? this.id,
       content: content ?? this.content,
       recipientName: recipientName ?? this.recipientName,
@@ -84,5 +83,4 @@ class ScheduledMessage {
       message: message ?? this.message,
       createdAt: createdAt ?? this.createdAt,
     );
-  }
 }

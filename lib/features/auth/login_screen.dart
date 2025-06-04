@@ -3,11 +3,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../services/auth_service.dart';
+import 'register_screen.dart';
+
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -28,28 +30,37 @@ class _LoginScreenState extends State<LoginScreen> {
     final email = emailController.text.trim();
     final password = passwordController.text;
 
+    if (email.isEmpty || password.isEmpty) {
+      setState(() {
+        errorMsg = "يرجى إدخال البريد الإلكتروني وكلمة المرور";
+        isLoading = false;
+      });
+      return;
+    }
+
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      await AuthService.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("تم تسجيل الدخول بنجاح 🎉")),
+        const SnackBar(
+          content: Text("تم تسجيل الدخول بنجاح 🎉"),
+          backgroundColor: Colors.green,
+        ),
       );
-      Navigator.pushReplacementNamed(context, '/home');
+
+      // Navigation will be handled by AuthWrapper
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found' || e.code == 'wrong-password') {
-        setState(() {
-          errorMsg = "البريد الإلكتروني أو كلمة المرور غير صحيحة";
-        });
-      } else {
-        setState(() {
-          errorMsg = e.message ?? "حدث خطأ غير متوقع";
-        });
-      }
+      setState(() {
+        errorMsg = AuthService.getErrorMessage(e);
+      });
     } catch (e) {
       setState(() {
-        errorMsg = e.toString();
+        errorMsg = "حدث خطأ غير متوقع: $e";
       });
     } finally {
       setState(() {
@@ -63,27 +74,32 @@ class _LoginScreenState extends State<LoginScreen> {
       isLoading = true;
       errorMsg = null;
     });
+
     try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) {
+      final userCredential = await AuthService.signInWithGoogle();
+
+      if (userCredential == null) {
+        // User canceled the sign-in
         setState(() {
           isLoading = false;
         });
         return;
       }
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-      await FirebaseAuth.instance.signInWithCredential(credential);
 
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("مرحبًا بك في تهنئة 🎉")),
+        const SnackBar(
+          content: Text("مرحبًا بك في تهنئة 🎉"),
+          backgroundColor: Colors.green,
+        ),
       );
-      Navigator.pushReplacementNamed(context, '/home');
+
+      // Navigation will be handled by AuthWrapper
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        errorMsg = AuthService.getErrorMessage(e);
+      });
     } catch (e) {
       setState(() {
         errorMsg = "فشل تسجيل الدخول عبر Google: $e";
@@ -103,23 +119,32 @@ class _LoginScreenState extends State<LoginScreen> {
       });
       return;
     }
+
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      await AuthService.sendPasswordResetEmail(email);
+
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content:
-                Text("تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني")),
+          content:
+              Text("تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني"),
+          backgroundColor: Colors.green,
+        ),
       );
     } on FirebaseAuthException catch (e) {
       setState(() {
-        errorMsg = "تعذر إرسال رابط استعادة كلمة المرور: ${e.message}";
+        errorMsg = AuthService.getErrorMessage(e);
+      });
+    } catch (e) {
+      setState(() {
+        errorMsg = "حدث خطأ غير متوقع: $e";
       });
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Directionality(
+  Widget build(BuildContext context) => Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -269,7 +294,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, '/register');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const RegisterScreen(),
+                          ),
+                        );
                       },
                       child: Text(
                         "سجّل الآن",
@@ -287,5 +317,4 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
-  }
 }

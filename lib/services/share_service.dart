@@ -49,7 +49,7 @@ class ShareService {
     required String senderName,
   }) async {
     try {
-      String shareText = '$greeting\n\nإلى: $recipientName\nمن: $senderName';
+      final String shareText = '$greeting\n\nإلى: $recipientName\nمن: $senderName';
       await Share.share(shareText);
     } catch (e) {
       print('خطأ في مشاركة التهنئة: $e');
@@ -64,7 +64,7 @@ class ShareService {
     String? imageUrl,
   }) async {
     try {
-      String shareText = '$title\n\n$content\n\nالمصدر: $source';
+      final String shareText = '$title\n\n$content\n\nالمصدر: $source';
 
       if (imageUrl != null) {
         // إذا كانت هناك صورة، نقوم بتحميلها ومشاركتها
@@ -91,8 +91,7 @@ class ShareService {
     required Sticker sticker,
     required String recipientName,
     required String senderName,
-  }) {
-    return Container(
+  }) => Container(
       width: 1080,
       height: 1920,
       color: Colors.white,
@@ -169,5 +168,4 @@ class ShareService {
         ],
       ),
     );
-  }
 }

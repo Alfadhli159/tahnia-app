@@ -21,8 +21,7 @@ class MessageCategory {
     this.isActive = true,
   });
 
-  factory MessageCategory.fromJson(Map<String, dynamic> json) {
-    return MessageCategory(
+  factory MessageCategory.fromJson(Map<String, dynamic> json) => MessageCategory(
       id: json['id'] as String,
       name: json['name'] as String,
       nameAr: json['nameAr'] as String,
@@ -37,10 +36,8 @@ class MessageCategory {
       order: json['order'] as int? ?? 0,
       isActive: json['isActive'] as bool? ?? true,
     );
-  }
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'id': id,
       'name': name,
       'nameAr': nameAr,
@@ -51,15 +48,10 @@ class MessageCategory {
       'order': order,
       'isActive': isActive,
     };
-  }
 
-  String getLocalizedName(String locale) {
-    return locale == 'ar' ? nameAr : name;
-  }
+  String getLocalizedName(String locale) => locale == 'ar' ? nameAr : name;
 
-  String? getLocalizedDescription(String locale) {
-    return locale == 'ar' ? descriptionAr : description;
-  }
+  String? getLocalizedDescription(String locale) => locale == 'ar' ? descriptionAr : description;
 }
 
 class MessageSubCategory {
@@ -83,8 +75,7 @@ class MessageSubCategory {
     this.isActive = true,
   });
 
-  factory MessageSubCategory.fromJson(Map<String, dynamic> json) {
-    return MessageSubCategory(
+  factory MessageSubCategory.fromJson(Map<String, dynamic> json) => MessageSubCategory(
       id: json['id'] as String,
       name: json['name'] as String,
       nameAr: json['nameAr'] as String,
@@ -97,10 +88,8 @@ class MessageSubCategory {
       order: json['order'] as int? ?? 0,
       isActive: json['isActive'] as bool? ?? true,
     );
-  }
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'id': id,
       'name': name,
       'nameAr': nameAr,
@@ -110,15 +99,10 @@ class MessageSubCategory {
       'order': order,
       'isActive': isActive,
     };
-  }
 
-  String getLocalizedName(String locale) {
-    return locale == 'ar' ? nameAr : name;
-  }
+  String getLocalizedName(String locale) => locale == 'ar' ? nameAr : name;
 
-  String? getLocalizedDescription(String locale) {
-    return locale == 'ar' ? descriptionAr : description;
-  }
+  String? getLocalizedDescription(String locale) => locale == 'ar' ? descriptionAr : description;
 }
 
 class MessageCategoriesService {
@@ -132,10 +116,8 @@ class MessageCategoriesService {
     _isInitialized = true;
   }
 
-  static List<MessageCategory> getAllCategories() {
-    return _categories.where((category) => category.isActive).toList()
+  static List<MessageCategory> getAllCategories() => _categories.where((category) => category.isActive).toList()
       ..sort((a, b) => a.order.compareTo(b.order));
-  }
 
   static MessageCategory? getCategoryById(String id) {
     try {
@@ -163,8 +145,7 @@ class MessageCategoriesService {
     }
   }
 
-  static List<MessageCategory> _getDefaultCategories() {
-    return [
+  static List<MessageCategory> _getDefaultCategories() => [
       MessageCategory(
         id: 'religious',
         name: 'Religious',
@@ -276,5 +257,4 @@ class MessageCategoriesService {
         ],
       ),
     ];
-  }
 }

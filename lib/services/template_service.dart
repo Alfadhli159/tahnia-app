@@ -24,8 +24,7 @@ class TemplateService {
         templatesNotifier.value.where((t) => t.id != id).toList();
   }
 
-  static List<MessageTemplate> searchTemplates(String query) {
-    return templatesNotifier.value
+  static List<MessageTemplate> searchTemplates(String query) => templatesNotifier.value
         .where((t) =>
             t.name.toLowerCase().contains(query.toLowerCase()) ||
             t.content.toLowerCase().contains(query.toLowerCase()) ||
@@ -33,7 +32,6 @@ class TemplateService {
             t.tags
                 .any((tag) => tag.toLowerCase().contains(query.toLowerCase())))
         .toList();
-  }
 
   static void reorderTemplates(int oldIndex, int newIndex) {
     if (oldIndex < newIndex) {

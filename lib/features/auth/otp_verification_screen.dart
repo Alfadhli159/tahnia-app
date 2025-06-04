@@ -49,7 +49,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       _isLoading = true;
     });
 
-    String otp = _controllers.map((controller) => controller.text).join();
+    final String otp = _controllers.map((controller) => controller.text).join();
     
     // For testing purposes, accept any 6-digit code
     if (otp.length == 6) {
@@ -83,8 +83,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Directionality(
+  Widget build(BuildContext context) => Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
@@ -206,5 +205,4 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         ),
       ),
     );
-  }
 }

@@ -26,8 +26,7 @@ class _ScheduleGreetingScreenState extends State<ScheduleGreetingScreen>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(
         title: const Text('الرسائل المجدولة'),
         bottom: TabBar(
@@ -56,10 +55,8 @@ class _ScheduleGreetingScreenState extends State<ScheduleGreetingScreen>
         child: const Icon(Icons.add),
       ),
     );
-  }
 
-  Widget _buildScheduledMessagesTab() {
-    return ValueListenableBuilder<List<ScheduledMessage>>(
+  Widget _buildScheduledMessagesTab() => ValueListenableBuilder<List<ScheduledMessage>>(
       valueListenable: ScheduledMessageService.messagesNotifier,
       builder: (context, messages, child) {
         final filteredMessages = _filterMessages(messages);
@@ -94,7 +91,6 @@ class _ScheduleGreetingScreenState extends State<ScheduleGreetingScreen>
         );
       },
     );
-  }
 
   Widget _buildTemplatesTab() {
     // For now, show empty state since templates service is not fully implemented
@@ -116,14 +112,12 @@ class _ScheduleGreetingScreenState extends State<ScheduleGreetingScreen>
   List<ScheduledMessage> _filterMessages(List<ScheduledMessage> messages) {
     if (_searchQuery.isEmpty) return messages;
 
-    return messages.where((message) {
-      return message.content
+    return messages.where((message) => message.content
               .toLowerCase()
               .contains(_searchQuery.toLowerCase()) ||
           message.recipientName
               .toLowerCase()
-              .contains(_searchQuery.toLowerCase());
-    }).toList();
+              .contains(_searchQuery.toLowerCase())).toList();
   }
 
   Widget _buildMessageCard(ScheduledMessage message) {
@@ -252,7 +246,6 @@ class _ScheduleGreetingScreenState extends State<ScheduleGreetingScreen>
       recipientPhone: message.recipientPhone,
       scheduledTime: DateTime.now().add(const Duration(hours: 1)),
       repeatType: message.repeatType,
-      isEnabled: true,
       createdAt: DateTime.now(),
       source: message.source,
     );
@@ -377,8 +370,7 @@ class _MessageDialogState extends State<_MessageDialog> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
+  Widget build(BuildContext context) => AlertDialog(
       title:
           Text(widget.message == null ? 'إضافة رسالة مجدولة' : 'تعديل الرسالة'),
       content: SingleChildScrollView(
@@ -481,7 +473,6 @@ class _MessageDialogState extends State<_MessageDialog> {
         ),
       ],
     );
-  }
 
   String _getRepeatTypeText(RepeatType type) {
     switch (type) {
@@ -542,7 +533,6 @@ class _MessageDialogState extends State<_MessageDialog> {
       repeatType: _repeatType,
       isEnabled: _isEnabled,
       createdAt: widget.message?.createdAt ?? DateTime.now(),
-      source: MessageSource.whatsapp,
     );
 
     if (widget.message == null) {

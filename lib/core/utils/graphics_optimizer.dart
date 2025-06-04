@@ -34,8 +34,7 @@ class GraphicsOptimizer {
     BoxFit fit = BoxFit.cover,
     Widget? placeholder,
     Widget? errorWidget,
-  }) {
-    return CachedNetworkImage(
+  }) => CachedNetworkImage(
       imageUrl: imageUrl,
       width: width,
       height: height,
@@ -45,7 +44,6 @@ class GraphicsOptimizer {
       errorWidget: (context, url, error) =>
           errorWidget ?? const Icon(Icons.error),
     );
-  }
 
   static Widget optimizeListView({
     required List<Widget> children,
@@ -56,8 +54,7 @@ class GraphicsOptimizer {
     bool shrinkWrap = false,
     Axis scrollDirection = Axis.vertical,
     Widget? separator,
-  }) {
-    return SizedBox(
+  }) => SizedBox(
       width: width,
       height: height,
       child: ListView.separated(
@@ -70,7 +67,6 @@ class GraphicsOptimizer {
         separatorBuilder: (context, index) => separator ?? const SizedBox(),
       ),
     );
-  }
 
   static Widget optimizeGrid({
     required List<Widget> children,
@@ -83,8 +79,7 @@ class GraphicsOptimizer {
     int crossAxisCount = 2,
     double mainAxisSpacing = 8,
     double crossAxisSpacing = 8,
-  }) {
-    return GridView.count(
+  }) => GridView.count(
       key: const ValueKey('optimized_grid'),
       children: children,
       padding: padding ?? const EdgeInsets.all(8),
@@ -96,5 +91,4 @@ class GraphicsOptimizer {
       crossAxisSpacing: crossAxisSpacing,
       childAspectRatio: (width ?? 100) / (height ?? 100),
     );
-  }
 }

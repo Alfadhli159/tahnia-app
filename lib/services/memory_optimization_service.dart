@@ -95,9 +95,7 @@ class MemoryOptimizationService {
   }
   
   /// تحسين أداء ListView
-  ScrollPhysics getOptimizedScrollPhysics() {
-    return const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
-  }
+  ScrollPhysics getOptimizedScrollPhysics() => const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
   
   /// الحصول على إعدادات تحسين الأداء للقوائم
   Widget Function(BuildContext, int) Function(
@@ -106,8 +104,7 @@ class MemoryOptimizationService {
     int? cacheExtent,
     bool addAutomaticKeepAlives = false,
     bool addRepaintBoundaries = true,
-  }) {
-    return (Widget Function(BuildContext, int) childBuilder) {
+  }) => (Widget Function(BuildContext, int) childBuilder) {
       return (BuildContext context, int index) {
         final child = childBuilder(context, index);
         if (addRepaintBoundaries) {
@@ -116,5 +113,4 @@ class MemoryOptimizationService {
         return child;
       };
     };
-  }
 }
